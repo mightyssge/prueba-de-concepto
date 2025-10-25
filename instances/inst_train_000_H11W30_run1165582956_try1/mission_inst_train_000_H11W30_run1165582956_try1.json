@@ -1,0 +1,228 @@
+{
+  "ticks_used": 751,
+  "served": 29,
+  "total": 29,
+  "violations": 9,
+  "n_rtb": 0,
+  "uavs": [
+    {
+      "uid": 0,
+      "energy_spent": 209.35,
+      "steps_ortho": 112,
+      "steps_diag": 47,
+      "distance_m": 6748.746
+    },
+    {
+      "uid": 1,
+      "energy_spent": 208.5,
+      "steps_ortho": 120,
+      "steps_diag": 37,
+      "distance_m": 6516.486
+    }
+  ],
+  "pois": [
+    {
+      "y": 0,
+      "x": 21,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 7,
+      "x": 28,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 2,
+      "x": 11,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 7,
+      "x": 26,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 2,
+      "x": 24,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 7,
+      "x": 14,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 7,
+      "x": 1,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 0,
+      "x": 22,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 4,
+      "x": 23,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 3,
+      "x": 28,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 5,
+      "x": 28,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 2,
+      "x": 25,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 2,
+      "x": 5,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 189
+    },
+    {
+      "y": 4,
+      "x": 7,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 4,
+      "x": 5,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 0,
+      "x": 10,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 189
+    },
+    {
+      "y": 8,
+      "x": 26,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 6,
+      "x": 8,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 290
+    },
+    {
+      "y": 4,
+      "x": 12,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 393
+    },
+    {
+      "y": 8,
+      "x": 3,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 1,
+      "x": 29,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 445
+    },
+    {
+      "y": 6,
+      "x": 29,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 2,
+      "x": 0,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 5,
+      "x": 24,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 9,
+      "x": 15,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 9,
+      "x": 11,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 577
+    },
+    {
+      "y": 3,
+      "x": 16,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 585
+    },
+    {
+      "y": 5,
+      "x": 19,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 675
+    },
+    {
+      "y": 1,
+      "x": 3,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 663
+    }
+  ]
+}

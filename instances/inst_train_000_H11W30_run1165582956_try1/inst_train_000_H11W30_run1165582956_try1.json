@@ -1,0 +1,267 @@
+{
+  "run_seed": 1165582956,
+  "split": "train",
+  "k": 0,
+  "tries": 1,
+  "H": 11,
+  "W": 30,
+  "p_obs": 0.0767704782711495,
+  "base_xy": [
+    0,
+    20
+  ],
+  "uav_energy": {
+    "E_max": 1000.0,
+    "E_reserve": 150.0,
+    "e_move_ortho": 1.0,
+    "e_move_diag": 1.2,
+    "e_wait": 1.05
+  },
+  "metrics": {
+    "density_real": 0.06060606060606061,
+    "perimeter_free": 1.0,
+    "pct_reachable": 100.0,
+    "pct_viable": 100.0,
+    "E_round": {
+      "min": 5.15,
+      "med": 22.099999999999998,
+      "mean": 23.049999999999997,
+      "max": 43.949999999999996
+    },
+    "tw_any": true,
+    "tw_min": 48,
+    "tw_max": 117
+  },
+  "pois": [
+    {
+      "y": 0,
+      "x": 21,
+      "priority": 1,
+      "dwell_ticks": 3,
+      "tw": null
+    },
+    {
+      "y": 7,
+      "x": 28,
+      "priority": 3,
+      "dwell_ticks": 4,
+      "tw": null
+    },
+    {
+      "y": 2,
+      "x": 11,
+      "priority": 2,
+      "dwell_ticks": 4,
+      "tw": null
+    },
+    {
+      "y": 7,
+      "x": 26,
+      "priority": 1,
+      "dwell_ticks": 3,
+      "tw": null
+    },
+    {
+      "y": 2,
+      "x": 24,
+      "priority": 3,
+      "dwell_ticks": 4,
+      "tw": null
+    },
+    {
+      "y": 7,
+      "x": 14,
+      "priority": 3,
+      "dwell_ticks": 3,
+      "tw": null
+    },
+    {
+      "y": 7,
+      "x": 1,
+      "priority": 3,
+      "dwell_ticks": 2,
+      "tw": null
+    },
+    {
+      "y": 0,
+      "x": 22,
+      "priority": 3,
+      "dwell_ticks": 2,
+      "tw": null
+    },
+    {
+      "y": 4,
+      "x": 23,
+      "priority": 3,
+      "dwell_ticks": 3,
+      "tw": null
+    },
+    {
+      "y": 3,
+      "x": 28,
+      "priority": 3,
+      "dwell_ticks": 2,
+      "tw": null
+    },
+    {
+      "y": 5,
+      "x": 28,
+      "priority": 3,
+      "dwell_ticks": 4,
+      "tw": null
+    },
+    {
+      "y": 2,
+      "x": 25,
+      "priority": 3,
+      "dwell_ticks": 3,
+      "tw": null
+    },
+    {
+      "y": 2,
+      "x": 5,
+      "priority": 2,
+      "dwell_ticks": 2,
+      "tw": {
+        "tmin": 16,
+        "tmax": 91
+      }
+    },
+    {
+      "y": 4,
+      "x": 7,
+      "priority": 1,
+      "dwell_ticks": 2,
+      "tw": null
+    },
+    {
+      "y": 4,
+      "x": 5,
+      "priority": 2,
+      "dwell_ticks": 2,
+      "tw": null
+    },
+    {
+      "y": 0,
+      "x": 10,
+      "priority": 2,
+      "dwell_ticks": 2,
+      "tw": {
+        "tmin": 11,
+        "tmax": 128
+      }
+    },
+    {
+      "y": 8,
+      "x": 26,
+      "priority": 3,
+      "dwell_ticks": 2,
+      "tw": null
+    },
+    {
+      "y": 6,
+      "x": 8,
+      "priority": 3,
+      "dwell_ticks": 3,
+      "tw": {
+        "tmin": 13,
+        "tmax": 109
+      }
+    },
+    {
+      "y": 4,
+      "x": 12,
+      "priority": 2,
+      "dwell_ticks": 3,
+      "tw": {
+        "tmin": 9,
+        "tmax": 64
+      }
+    },
+    {
+      "y": 8,
+      "x": 3,
+      "priority": 3,
+      "dwell_ticks": 3,
+      "tw": null
+    },
+    {
+      "y": 1,
+      "x": 29,
+      "priority": 2,
+      "dwell_ticks": 3,
+      "tw": {
+        "tmin": 10,
+        "tmax": 97
+      }
+    },
+    {
+      "y": 6,
+      "x": 29,
+      "priority": 2,
+      "dwell_ticks": 4,
+      "tw": null
+    },
+    {
+      "y": 2,
+      "x": 0,
+      "priority": 3,
+      "dwell_ticks": 3,
+      "tw": null
+    },
+    {
+      "y": 5,
+      "x": 24,
+      "priority": 2,
+      "dwell_ticks": 4,
+      "tw": null
+    },
+    {
+      "y": 9,
+      "x": 15,
+      "priority": 2,
+      "dwell_ticks": 2,
+      "tw": null
+    },
+    {
+      "y": 9,
+      "x": 11,
+      "priority": 3,
+      "dwell_ticks": 3,
+      "tw": {
+        "tmin": 10,
+        "tmax": 60
+      }
+    },
+    {
+      "y": 3,
+      "x": 16,
+      "priority": 3,
+      "dwell_ticks": 2,
+      "tw": {
+        "tmin": 5,
+        "tmax": 86
+      }
+    },
+    {
+      "y": 5,
+      "x": 19,
+      "priority": 3,
+      "dwell_ticks": 4,
+      "tw": {
+        "tmin": 6,
+        "tmax": 75
+      }
+    },
+    {
+      "y": 1,
+      "x": 3,
+      "priority": 3,
+      "dwell_ticks": 4,
+      "tw": {
+        "tmin": 18,
+        "tmax": 66
+      }
+    }
+  ]
+}

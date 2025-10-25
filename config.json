@@ -1,0 +1,92 @@
+{
+  "simulation_environment": {
+    "flight_altitude_m": 30,
+    "cell_size_m": [43.22, 32.41],
+    "grid_size": {
+      "train": {
+        "min": [8, 20],
+        "max": [14, 40],
+        "aspect_ratio": {
+          "target": 2.73,
+          "min": 2.2,
+          "max": 3.2,
+          "enforce": "filter"
+        },
+        "sampling": "uniform_int"
+      },
+      "val": {
+        "min": [8, 20],
+        "max": [14, 40],
+        "aspect_ratio": {
+          "target": 2.73,
+          "min": 2.2,
+          "max": 3.2,
+          "enforce": "filter"
+        },
+        "sampling": "uniform_int"
+      }
+    },
+    "seed_global": 1408,
+    "seeds": { "obstacles": 14081, "pois": 14082, "training": 14083 },
+    "horizon_ticks": 820,
+    "delta_t_s": 2.52
+  },
+
+  "uav_specs": {
+    "battery_Wh": 115,
+    "cruise_speed_ms": 15,
+    "n_uavs": { "train": [2, 6], "val": [2, 6] },
+    "E_max": { "train": 1000, "val": 650 },
+    "E_reserve": { "train": 150, "val": 100 },
+    "energy_model": {
+      "e_move_ortho": 1.0,
+      "e_move_diag": { "train": 1.2, "val": 1.414 },
+      "e_wait": 1.05
+    },
+    "policy_RTB": "active",
+    "energy_mask": "active"
+  },
+
+  "base_station": {
+    "charge_model": "instant",
+    "turnaround_ticks": [48, 120],
+    "base_capacity": 6,
+    "queue_discipline": "FCFS"
+  },
+
+  "pois": {
+    "priority_levels": [1, 2, 3],
+    "priority_weights": [1.0, 1.3, 1.6],
+    "dwell_ticks_range": [2, 4],
+    "time_window_s": [60, 300],
+    "tightness_rho": [0.0, 1.0],
+    "tw_active_prob": 0.4,
+    "n_persons_max": 4,
+    "n_persons_probs": [0.55, 0.25, 0.10, 0.06, 0.04],
+    "extra_tick_per_person": 1
+  },
+
+  "routes": {
+    "cell_distances_m": { "L_o": 37.815, "L_d": 53.478 },
+    "cost_units": "energy_units",
+    "ETA_units": "ticks"
+  },
+
+  "generation_rules": {
+    "n_pois": {
+      "train": { "density_level": "medium" },     
+      "val":   { "density_level": "medium" },
+      "n_pois_size" : [12, 120] ,
+      "profiles": {
+        "baja":  { "d": 0.045, "jitter": 0.01},
+        "media": { "d": 0.080, "jitter": 0.01},
+        "alta":  { "d": 0.120, "jitter": 0.02}
+      }
+    },
+
+    "obstacles": {
+      "density_range": [0.05, 0.10],
+      "ensure_connectivity": true
+    }
+  }
+}

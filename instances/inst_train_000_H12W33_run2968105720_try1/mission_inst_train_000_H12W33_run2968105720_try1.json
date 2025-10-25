@@ -1,0 +1,242 @@
+{
+  "ticks_used": 820,
+  "served": 27,
+  "total": 31,
+  "violations": 9,
+  "n_rtb": 0,
+  "uavs": [
+    {
+      "uid": 0,
+      "energy_spent": 228.95,
+      "steps_ortho": 128,
+      "steps_diag": 50,
+      "distance_m": 7514.22
+    },
+    {
+      "uid": 1,
+      "energy_spent": 228.15,
+      "steps_ortho": 105,
+      "steps_diag": 65,
+      "distance_m": 7446.645
+    }
+  ],
+  "pois": [
+    {
+      "y": 0,
+      "x": 4,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 8,
+      "x": 31,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 1,
+      "x": 19,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 3,
+      "x": 3,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 6,
+      "x": 25,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 101
+    },
+    {
+      "y": 8,
+      "x": 7,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 0,
+      "x": 1,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 108
+    },
+    {
+      "y": 4,
+      "x": 4,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 4,
+      "x": 17,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 1,
+      "x": 26,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 11,
+      "x": 2,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 257
+    },
+    {
+      "y": 11,
+      "x": 26,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 334
+    },
+    {
+      "y": 11,
+      "x": 5,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 7,
+      "x": 22,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 4,
+      "x": 18,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 2,
+      "x": 3,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 8,
+      "x": 30,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 494
+    },
+    {
+      "y": 2,
+      "x": 18,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 500
+    },
+    {
+      "y": 10,
+      "x": 24,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 547
+    },
+    {
+      "y": 4,
+      "x": 0,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 9,
+      "x": 23,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 3,
+      "x": 9,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 7,
+      "x": 0,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 9,
+      "x": 2,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 11,
+      "x": 30,
+      "served": true,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 9,
+      "x": 13,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 635
+    },
+    {
+      "y": 7,
+      "x": 16,
+      "served": true,
+      "violated": true,
+      "tardiness_ticks": 662
+    },
+    {
+      "y": 9,
+      "x": 32,
+      "served": false,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 5,
+      "x": 9,
+      "served": false,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 4,
+      "x": 25,
+      "served": false,
+      "violated": false,
+      "tardiness_ticks": 0
+    },
+    {
+      "y": 7,
+      "x": 17,
+      "served": false,
+      "violated": false,
+      "tardiness_ticks": 0
+    }
+  ]
+}

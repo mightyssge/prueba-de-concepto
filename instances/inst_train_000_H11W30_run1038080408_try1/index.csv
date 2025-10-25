@@ -1,0 +1,2 @@
+run_seed,split,k,tries,H,W,p_obs,density_real,perimeter_free,N_pois,pct_reachable,pct_viable,prio_levels,prio_mode_ratio,dwell_min,dwell_max,tw_any,tw_min,tw_max,E_round_min,E_round_med,E_round_mean,E_round_max,E_max,E_reserve,stem
+1038080408,train,0,1,11,30,0.08539745093957746,0.07575757575757576,1.0,26,100.0,100.0,3,0.4230769230769231,2,4,True,28,108,6.1,24.424999999999997,25.873076923076916,46.89999999999999,1000.0,150.0,inst_train_000_H11W30_run1038080408_try1

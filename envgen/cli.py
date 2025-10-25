@@ -199,7 +199,7 @@ def main():
                     prio_mode_ratio = float(cnt.max() / cnt.sum()) if cnt.size > 0 else 0.0
 
                     # Dwell
-                    dw = [p["dwell_ticks"] for p in pois]
+                    dw = [p["dwell_ticks_eff"] for p in pois]
                     dwell_min = int(min(dw)) if dw else None
                     dwell_max = int(max(dw)) if dw else None
 
@@ -210,6 +210,15 @@ def main():
 
                     # Guardar NPZ/JSON dentro de la carpeta del escenario
                     npz_path = save_instance_npz(inst_dir, stem, grid, distmap, energy_map)
+
+                    # === [NEW] Estadísticas de personas por POI ===
+                    persons = [p.get("n_persons", 0) for p in pois]
+                    has_any_person = any(pp > 0 for pp in persons)
+                    p_mean = float(np.mean(persons)) if persons else 0.0
+                    p_max  = int(np.max(persons)) if persons else 0
+                    p_pos  = 100.0 * float(np.mean(np.array(persons) > 0)) if persons else 0.0
+
+
                     meta = {
                         "run_seed": int(run_seed), "split": split, "k": int(k), "tries": int(tries_used),
                         "H": int(H), "W": int(W), "p_obs": float(pobs), "base_xy": list(base_xy),
@@ -223,7 +232,12 @@ def main():
                             "E_round": {"min": E_min, "med": E_med, "mean": E_mean, "max": E_max_obs},
                             "tw_any": bool(tw_any), "tw_min": tw_min, "tw_max": tw_max
                         },
-                        "pois": pois
+
+                        "pois": pois,
+                        "persons_any": bool(has_any_person),
+                        "persons_mean": p_mean,
+                        "persons_max": p_max,
+                        "persons_p_gt0": p_pos,
                     }
                     json_path = save_instance_json(inst_dir, stem, meta)
 
@@ -240,7 +254,11 @@ def main():
                         "tw_any": tw_any, "tw_min": tw_min, "tw_max": tw_max,
                         "E_round_min": E_min, "E_round_med": E_med,
                         "E_round_mean": E_mean, "E_round_max": E_max_obs,
-                        "E_max": E_max, "E_reserve": E_reserve, "stem": stem
+                        "E_max": E_max, "E_reserve": E_reserve, "stem": stem,
+                        "persons_any": has_any_person,
+                        "persons_mean": p_mean,
+                        "persons_max": p_max,
+                        "persons_p_gt0": p_pos
                     })
 
                     print(f"[SAVE] ok → {npz_path} | {json_path}")
@@ -268,8 +286,19 @@ def main():
                         Emax_cfg = float(cfg["uav_specs"]["E_max"][split])
                         uavs_list = [UAV(uid=i, pos=tuple(base_xy), E=Emax_cfg) for i in range(nu_min)]
 
-                        pois_objs = [POI(y=p["y"], x=p["x"], dwell_ticks=p["dwell_ticks"],
-                                         priority=p["priority"], tw=p.get("tw")) for p in pois]
+                        pois_objs = [
+                            POI(
+                                y=p["y"], x=p["x"],
+                                dwell_ticks=p["dwell_ticks"],                     # base
+                                dwell_ticks_eff=p.get("dwell_ticks_eff", None),   # [NEW]
+                                n_persons=p.get("n_persons", 0),                  # [NEW]
+                                priority=p["priority"],
+                                tw=p.get("tw")
+                            )
+                            for p in pois
+                        ]
+
+                        vprint(f"pois.persons     -> mean={p_mean:.2f} | max={p_max} | p>0={p_pos:.1f}%")
 
                         base_obj = BaseStation(
                             xy=tuple(base_xy),

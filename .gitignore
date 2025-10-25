@@ -1,1 +1,8 @@
 .venv
+/instances/
+/.pytest_cache/
+envgen/__pycache__/
+envgen/sim_engine/__pycache__/
+*.pyc
+*.pyo
+*.pyd

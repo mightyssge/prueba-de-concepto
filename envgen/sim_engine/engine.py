@@ -100,7 +100,7 @@ def simulate_episode(
                                 the.first_visit_t = t
                                 served_cnt += 1
                                 u.state = "servicing"
-                                u.service_left = the.dwell_ticks
+                                u.service_left = the.dwell_ticks_eff
                             else:
                                 u.state = "idle"
                             u.target = None

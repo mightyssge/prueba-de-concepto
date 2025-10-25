@@ -28,7 +28,7 @@ def plot_grid_with_base(grid: np.ndarray, base_xy: tuple[int,int], *, title: str
 
 def plot_grid_with_base_pois(
     grid: np.ndarray,
-    base_xy: tuple[int,int],
+    base_xy: tuple[int, int],
     pois: list[dict] | None = None,
     *,
     highlight_idx: int | None = None,  # índice del POI a resaltar
@@ -40,7 +40,7 @@ def plot_grid_with_base_pois(
     - Obstáculos: gris/negro (cmap="gray_r")
     - Base: cuadrado borde verde
     - POIs: círculos rojos
-    - POI destacado: azul/cian y anotación con atributos (priority, dwell, TW si existe)
+    - POI destacado: azul/cian + anotación con priority, dwell base, dwell eff, n_persons y TW (si existe)
     """
     H, W = grid.shape
     fig, ax = plt.subplots(figsize=(max(W/5, 4), max(H/5, 4)))
@@ -62,22 +62,25 @@ def plot_grid_with_base_pois(
         if highlight_idx is not None and 0 <= highlight_idx < len(pois):
             p = pois[highlight_idx]
             hx, hy = p["x"], p["y"]
-            ax.scatter([hx], [hy], s=80, marker="o",
-                       facecolors="deepskyblue", edgecolors="black", linewidths=0.8,
+            ax.scatter([hx], [hy], s=90, marker="o",
+                       facecolors="deepskyblue", edgecolors="black", linewidths=0.9,
                        label=f"POI* #{highlight_idx}")
 
-            # Construir texto con atributos
+            # Atributos con fallback
             pr = p.get("priority", "?")
-            dw = p.get("dwell_ticks", "?")
-            tw = p.get("tw", None)
-            if tw is None:
-                tw_str = "TW: —"
-            else:
-                tw_str = f"TW: [{tw.get('tmin','?')},{tw.get('tmax','?')}]"
+            dw_base = p.get("dwell_ticks", "¿?")
+            dw_eff  = p.get("dwell_ticks_eff", dw_base)
+            nper    = p.get("n_persons", 0)
+            tw      = p.get("tw", None)
+            tw_str  = "—" if tw is None else f"[{tw.get('tmin','?')},{tw.get('tmax','?')}]"
 
-            info = f"POI* #{highlight_idx}  (y={hy}, x={hx})\nprio={pr} | dwell={dw} | {tw_str}"
+            # Texto
+            info = (
+                f"POI* #{highlight_idx}  (y={hy}, x={hx})\n"
+                f"prio={pr} | dwell={dw_base} → eff={dw_eff} ticks | n_persons={nper}\n"
+                f"TW: {tw_str}"
+            )
 
-            # Anotación (cuadro blanco semitransparente)
             ax.annotate(
                 info,
                 xy=(hx, hy),

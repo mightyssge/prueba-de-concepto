@@ -37,7 +37,15 @@ def _split_value(cfg_val, split: str) -> float:
     return float(cfg_val[split]) if isinstance(cfg_val, dict) else float(cfg_val)
 
 
-def make_instance(cfg: dict, phase: CurriculumPhase, rng: np.random.Generator, split: str = "train") -> dict:
+def make_instance(
+    cfg: dict,
+    phase: CurriculumPhase,
+    rng: np.random.Generator,
+    split: str = "train",
+    *,
+    poi_scale: float = 1.0,
+    E_max_scale: float = 1.0,
+) -> dict:
     # Sample grid and obstacles
     H, W = sample_grid_size(cfg["simulation_environment"]["grid_size"][split], rng)
     pobs = 0.0 if not phase.obstacles else sample_p_obs(cfg["generation_rules"]["obstacles"]["density_range"], rng)
@@ -53,7 +61,7 @@ def make_instance(cfg: dict, phase: CurriculumPhase, rng: np.random.Generator, s
     limits = tuple(ncfg["n_pois_size"])
     profiles = ncfg["profiles"]
     n_pois = sample_n_pois(H, W, ncfg[split], limits, profiles, rng)
-    n_pois = int(max(1, round(n_pois * phase.poi_multiplier)))
+    n_pois = int(max(1, round(n_pois * phase.poi_multiplier * float(poi_scale))))
     pois_xy = place_pois(grid, n_pois, rng, forbid_xy=base_xy)
     pois_xy = [(y, x) for (y, x) in pois_xy if distmap[y, x] < INF]
 
@@ -97,7 +105,8 @@ def make_instance(cfg: dict, phase: CurriculumPhase, rng: np.random.Generator, s
         poi.n_persons = int(p.get("n_persons", 0))
         pois.append(poi)
 
-    E_max = _split_value(cfg["uav_specs"]["E_max"], split) if phase.energy else 1e9
+    base_E_max = _split_value(cfg["uav_specs"]["E_max"], split) if phase.energy else 1e9
+    E_max = base_E_max * float(E_max_scale)
     E_reserve = _split_value(cfg["uav_specs"]["E_reserve"], split) if phase.energy else 0.0
     e_ortho = float(cfg["uav_specs"]["energy_model"]["e_move_ortho"])
     e_diag_cfg = cfg["uav_specs"]["energy_model"]["e_move_diag"]
@@ -151,6 +160,8 @@ class MarlEnv:
         self.steps_ortho = {u.uid: 0 for u in self.uavs}
         self.steps_diag = {u.uid: 0 for u in self.uavs}
         self.rtb_count = 0
+        self.energy_spent = {u.uid: 0.0 for u in self.uavs}
+        self.served_counts = {u.uid: 0 for u in self.uavs}
 
     def _rtb_step(self, uav: UAV) -> float:
         """Moves one step along the gradient to base. Returns energy spent."""
@@ -175,6 +186,7 @@ class MarlEnv:
                     diag_step = diag
         uav.pos = best
         uav.E -= energy_spent
+        self.energy_spent[uav.uid] += energy_spent
         if diag_step:
             self.steps_diag[uav.uid] += 1
         else:
@@ -189,6 +201,7 @@ class MarlEnv:
         step_cost = self.e_move_diag if diag else self.e_move_ortho
         uav.pos = (ny, nx)
         uav.E -= step_cost
+        self.energy_spent[uav.uid] += step_cost
         if diag:
             self.steps_diag[uav.uid] += 1
         else:
@@ -198,6 +211,8 @@ class MarlEnv:
     def _serve_poi(self, uav: UAV, poi: POI) -> Tuple[float, float, int]:
         poi.served = True
         poi.first_visit_t = self.tick
+        poi.served_by = uav.uid
+        self.served_counts[uav.uid] += 1
         uav.state = "servicing"
         uav.service_left = poi.dwell_ticks_eff
         timeliness_reward = 0.0
@@ -270,6 +285,7 @@ class MarlEnv:
                 u.service_left -= 1
                 energy_spent += self.e_wait
                 u.E -= self.e_wait
+                self.energy_spent[u.uid] += self.e_wait
                 if u.service_left <= 0:
                     u.state = "idle"
                 continue
@@ -286,6 +302,7 @@ class MarlEnv:
             elif action == 9:
                 u.E -= self.e_wait
                 energy_spent += self.e_wait
+                self.energy_spent[u.uid] += self.e_wait
             elif action == 10:
                 self.rtb_count += 1
                 energy_spent += self._rtb_step(u)
@@ -365,7 +382,17 @@ def train_loop(args) -> None:
 
     actor = GraphActor(obs_dim=obs_dim, node_feat_dim=node_dim, hidden_dim=128, n_actions=11)
     critic = CentralCritic(state_dim=global_dim, hidden_dim=128)
-    agent = PPOAgent(actor, critic, gamma=args.gamma, gae_lambda=args.lam)
+    agent = PPOAgent(
+        actor,
+        critic,
+        gamma=args.gamma,
+        gae_lambda=args.lam,
+        actor_lr=args.lr_actor,
+        critic_lr=args.lr_critic,
+        entropy_coef=args.entropy_coef,
+        value_coef=args.value_coef,
+        clip_eps=args.clip_eps,
+    )
 
     best_cov = 0.0
     replay_cache: List[Transition] = []
@@ -458,7 +485,7 @@ def train_loop(args) -> None:
         print(f"[save] checkpoints stored at {args.save}")
 
 
-def parse_args():
+def parse_args(argv=None):
     ap = argparse.ArgumentParser("train_marl")
     ap.add_argument("--config", type=str, required=True, help="Path to config.json")
     ap.add_argument("--episodes", type=int, default=50)
@@ -468,7 +495,12 @@ def parse_args():
     ap.add_argument("--lam", type=float, default=0.95)
     ap.add_argument("--seed", type=int, default=1234)
     ap.add_argument("--save", type=str, default=None, help="Optional path to save model checkpoints")
-    return ap.parse_args()
+    ap.add_argument("--lr-actor", type=float, default=3e-4, help="Actor learning rate (4.3.3)")
+    ap.add_argument("--lr-critic", type=float, default=3e-4, help="Critic learning rate (4.3.3)")
+    ap.add_argument("--entropy-coef", type=float, default=0.01, help="Entropy coefficient (4.3.3)")
+    ap.add_argument("--value-coef", type=float, default=0.5, help="Value loss coefficient (4.3.3)")
+    ap.add_argument("--clip-eps", type=float, default=0.2, help="PPO clip epsilon (4.3.3)")
+    return ap.parse_args(argv)
 
 
 def main():

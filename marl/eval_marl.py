@@ -258,7 +258,8 @@ def rollout_policy(
             for u in env.uavs:
                 trajectories[u.uid].append(u.pos)
     served_after = sum(1 for p in env.pois if p.served)
-    coverage = served_after / max(len(env.pois), 1)
+    total_pois = len(env.pois)
+    coverage = served_after / max(total_pois, 1)
     violations = sum(1 for p in env.pois if getattr(p, "violated", False))
     tardiness_vals = [float(getattr(p, "tardiness", 0)) for p in env.pois]
     avg_tardiness = float(np.mean(tardiness_vals)) if tardiness_vals else 0.0
@@ -274,6 +275,8 @@ def rollout_policy(
         "distance": total_dist,
         "rtb": float(env.rtb_count),
         "duration": float(env.tick),
+        "served": float(served_after),
+        "total_pois": float(total_pois),
     }
     extras = {
         "trajectories": trajectories if log_trajectories else None,

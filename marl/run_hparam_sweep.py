@@ -3,19 +3,35 @@ from __future__ import annotations
 import argparse
 import csv
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from envgen.config import load_config
 
-from .eval_marl import build_agent_for_scenarios, build_phase_validation_set, evaluate_policy, MarlActorPolicy
+from .eval_marl import (
+    MarlActorPolicy,
+    build_agent_for_scenarios,
+    build_phase_validation_set,
+    evaluate_policy,
+)
 from .train_marl import parse_args as train_parse_args, train_loop, _default_curriculum
 
 
 DEFAULT_GRID = [
     {"id": "cfg_A", "lr_actor": 3e-4, "lr_critic": 3e-4, "entropy_coef": 0.01, "value_coef": 0.5, "clip_eps": 0.2},
-    #{"id": "cfg_B", "lr_actor": 5e-4, "lr_critic": 5e-4, "entropy_coef": 0.01, "value_coef": 0.4, "clip_eps": 0.2},
-    #{"id": "cfg_C", "lr_actor": 3e-4, "lr_critic": 3e-4, "entropy_coef": 0.02, "value_coef": 0.6, "clip_eps": 0.15},
+    {"id": "cfg_B", "lr_actor": 5e-4, "lr_critic": 5e-4, "entropy_coef": 0.01, "value_coef": 0.4, "clip_eps": 0.2},
+    {"id": "cfg_C", "lr_actor": 3e-4, "lr_critic": 3e-4, "entropy_coef": 0.02, "value_coef": 0.6, "clip_eps": 0.15},
 ]
+
+
+def _filter_grid(config_ids: Optional[str]) -> List[Dict[str, float]]:
+    grid = list(DEFAULT_GRID)
+    if config_ids:
+        wanted = {cid.strip() for cid in config_ids.split(",") if cid.strip()}
+        grid = [cfg for cfg in grid if cfg["id"] in wanted]
+        missing = wanted.difference({cfg["id"] for cfg in grid})
+        if missing:
+            print(f"[hparam] warning: unknown config ids skipped: {', '.join(sorted(missing))}")
+    return grid
 
 
 def run_hparam_sweep(args) -> None:
@@ -28,7 +44,11 @@ def run_hparam_sweep(args) -> None:
     checkpoint_dir = Path(args.checkpoint_dir)
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
-    for hp in DEFAULT_GRID:
+    grid = _filter_grid(args.config_ids)
+    if not grid:
+        raise ValueError("No configurations to run. Provide valid --config-ids or use defaults.")
+
+    for hp in grid:
         print(f"[hparam] starting config {hp['id']}")
         for seed_offset in range(args.seeds_per_config):
             train_seed = args.train_seed + seed_offset
@@ -66,7 +86,23 @@ def run_hparam_sweep(args) -> None:
 
             scenarios = build_phase_validation_set(cfg, curriculum, phase_id, eval_seeds)
             agent = build_agent_for_scenarios(scenarios[0].data, str(ckpt_path))
-            _, stats, _ = evaluate_policy(cfg, scenarios, lambda: MarlActorPolicy(agent), policy_name="marl")
+            episodes, stats, extra_logs = evaluate_policy(
+                cfg,
+                scenarios,
+                lambda: MarlActorPolicy(agent),
+                policy_name="marl",
+                log_trajectories=args.debug_eval,
+            )
+            if args.debug_eval:
+                for idx, (ep_metrics, extra) in enumerate(zip(episodes, extra_logs)):
+                    hist = {int(k): int(v) for k, v in (extra.get("action_hist") or {}).items()}
+                    print(
+                        f"[hparam][eval] cfg={hp['id']} seed={train_seed} ep={idx} "
+                        f"phase={int(ep_metrics['phase_id'])} cov={ep_metrics['coverage']:.3f} "
+                        f"dist={ep_metrics['distance']:.1f} served={ep_metrics.get('served', 0):.1f}/"
+                        f"{ep_metrics.get('total_pois', 0):.1f} rtb={extra.get('rtb_events', 0)} "
+                        f"actions={hist}"
+                    )
             row = {
                 "config_id": hp["id"],
                 "seed": train_seed,
@@ -109,6 +145,8 @@ def parse_args():
     ap.add_argument("--eval-seed", type=int, default=9000, help="Base seed for Phase-3 evaluation scenarios")
     ap.add_argument("--eval-count", type=int, default=5, help="# evaluation scenarios")
     ap.add_argument("--out-csv", type=str, default="results/hparam_sweep.csv")
+    ap.add_argument("--config-ids", type=str, default=None, help="Comma-separated subset of configs to run (e.g., cfg_A,cfg_B)")
+    ap.add_argument("--debug-eval", action="store_true", help="Print per-episode evaluation metrics and action histograms")
     return ap.parse_args()
 
 

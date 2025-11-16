@@ -162,6 +162,8 @@ class MarlEnv:
         self.rtb_count = 0
         self.energy_spent = {u.uid: 0.0 for u in self.uavs}
         self.served_counts = {u.uid: 0 for u in self.uavs}
+        # Track action usage per episode for debugging (4.4.3 / action sanity checks)
+        self.action_hist: Dict[int, int] = {i: 0 for i in range(len(ACTIONS))}
 
     def _rtb_step(self, uav: UAV) -> float:
         """Moves one step along the gradient to base. Returns energy spent."""
@@ -264,6 +266,7 @@ class MarlEnv:
 
         poi_lookup = {(p.y, p.x): p for p in self.pois}
 
+        pre_states = {u.uid: u.state for u in self.uavs}
         for u in self.uavs:
             action = actions.get(u.uid, 9)
             mask = build_action_mask(
@@ -279,6 +282,7 @@ class MarlEnv:
             if not mask[action]:
                 invalid += 1
                 action = 9  # hover fallback
+            self.action_hist[action] = self.action_hist.get(action, 0) + 1
 
             # If already servicing, tick down regardless of action
             if getattr(u, "service_left", 0) > 0 and u.state == "servicing":
@@ -304,10 +308,11 @@ class MarlEnv:
                 energy_spent += self.e_wait
                 self.energy_spent[u.uid] += self.e_wait
             elif action == 10:
-                self.rtb_count += 1
                 energy_spent += self._rtb_step(u)
 
             u.E = max(u.E, 0.0)
+            if pre_states[u.uid] != "rtb" and u.state == "rtb":
+                self.rtb_count += 1
 
         served_after = sum(1 for p in self.pois if p.served)
         if served_after > served_before:

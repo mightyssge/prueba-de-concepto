@@ -72,11 +72,16 @@ class RolloutBuffer:
         self.returns = self.advantages + values_t
 
     def as_tensors(self) -> Tuple[torch.Tensor, ...]:
-        obs_vec = torch.tensor([t.obs_vector for t in self.data], dtype=torch.float32)
-        actions = torch.tensor([t.action for t in self.data], dtype=torch.long)
-        logprobs = torch.tensor([t.logprob for t in self.data], dtype=torch.float32)
-        masks = torch.tensor([t.action_mask for t in self.data], dtype=torch.bool)
-        states = torch.tensor([t.global_state for t in self.data], dtype=torch.float32)
+        obs_arr = np.stack([t.obs_vector for t in self.data], axis=0).astype(np.float32)
+        obs_vec = torch.from_numpy(obs_arr)
+        actions_arr = np.asarray([t.action for t in self.data], dtype=np.int64)
+        actions = torch.from_numpy(actions_arr)
+        logprobs_arr = np.asarray([t.logprob for t in self.data], dtype=np.float32)
+        logprobs = torch.from_numpy(logprobs_arr)
+        masks_arr = np.stack([t.action_mask for t in self.data], axis=0).astype(bool)
+        masks = torch.from_numpy(masks_arr)
+        states_arr = np.stack([t.global_state for t in self.data], axis=0).astype(np.float32)
+        states = torch.from_numpy(states_arr)
         node_feats, adjs = _pad_nodes(
             [t.node_feats for t in self.data], [t.adj for t in self.data]
         )

@@ -13,8 +13,8 @@ from .train_marl import parse_args as train_parse_args, train_loop, _default_cur
 
 DEFAULT_GRID = [
     {"id": "cfg_A", "lr_actor": 3e-4, "lr_critic": 3e-4, "entropy_coef": 0.01, "value_coef": 0.5, "clip_eps": 0.2},
-    {"id": "cfg_B", "lr_actor": 5e-4, "lr_critic": 5e-4, "entropy_coef": 0.01, "value_coef": 0.4, "clip_eps": 0.2},
-    {"id": "cfg_C", "lr_actor": 3e-4, "lr_critic": 3e-4, "entropy_coef": 0.02, "value_coef": 0.6, "clip_eps": 0.15},
+    #{"id": "cfg_B", "lr_actor": 5e-4, "lr_critic": 5e-4, "entropy_coef": 0.01, "value_coef": 0.4, "clip_eps": 0.2},
+    #{"id": "cfg_C", "lr_actor": 3e-4, "lr_critic": 3e-4, "entropy_coef": 0.02, "value_coef": 0.6, "clip_eps": 0.15},
 ]
 
 
@@ -29,9 +29,11 @@ def run_hparam_sweep(args) -> None:
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     for hp in DEFAULT_GRID:
+        print(f"[hparam] starting config {hp['id']}")
         for seed_offset in range(args.seeds_per_config):
             train_seed = args.train_seed + seed_offset
             ckpt_path = checkpoint_dir / f"{hp['id']}_seed{train_seed}.pt"
+            print(f"[hparam] config {hp['id']} seed {train_seed} training")
             train_args = [
                 "--config",
                 args.config,

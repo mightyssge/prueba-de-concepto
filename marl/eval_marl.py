@@ -50,14 +50,21 @@ def _clone_pois(pois: Sequence[POI]) -> List[POI]:
 
 def clone_instance(instance: dict) -> dict:
     """Deep-copies a scenario dict to reset state between rollouts."""
+    base_xy = tuple(instance["base_xy"])
+    E_max = float(instance["E_max"])
+    cloned_uavs: List[UAV] = []
+    for src in instance["uavs"]:
+        uav = UAV(uid=src.uid, pos=base_xy, E=E_max)
+        uav.state = "idle"
+        cloned_uavs.append(uav)
     return {
         "grid": np.array(instance["grid"], copy=True),
-        "base_xy": tuple(instance["base_xy"]),
+        "base_xy": base_xy,
         "pois": _clone_pois(instance["pois"]),
-        "uavs": [UAV(uid=u.uid, pos=tuple(instance["base_xy"]), E=instance["E_max"]) for u in instance["uavs"]],
+        "uavs": cloned_uavs,
         "distmap": np.array(instance["distmap"], copy=True),
         "energy_map": np.array(instance["energy_map"], copy=True),
-        "E_max": float(instance["E_max"]),
+        "E_max": E_max,
         "E_reserve": float(instance["E_reserve"]),
         "e_move_ortho": float(instance["e_move_ortho"]),
         "e_move_diag": float(instance["e_move_diag"]),
@@ -275,6 +282,8 @@ def rollout_policy(
             u.uid: env.steps_ortho[u.uid] * env.L_o + env.steps_diag[u.uid] * env.L_d for u in env.uavs
         },
         "energy_per_uav": dict(env.energy_spent),
+        "action_hist": {str(k): int(v) for k, v in env.action_hist.items()},
+        "rtb_events": int(env.rtb_count),
     }
     return metrics, extras
 
@@ -417,6 +426,7 @@ def analyze_cooperation(extra_logs: Sequence[Dict[str, Any]]) -> List[Dict[str, 
         dist_vals = []
         energy_vals = []
         overlap_vals = []
+        rtb_ratios = []
         for log in logs:
             counts = list(log["poi_service_counts"].values())
             if counts:
@@ -437,6 +447,12 @@ def analyze_cooperation(extra_logs: Sequence[Dict[str, Any]]) -> List[Dict[str, 
             else:
                 overlap = 0.0
             overlap_vals.append(overlap)
+            hist_raw = log.get("action_hist") or {}
+            hist = {int(k): int(v) for k, v in hist_raw.items()}
+            total_actions = sum(hist.values())
+            rtb_actions = hist.get(10, 0)
+            rtb_ratio = float(rtb_actions) / max(total_actions, 1) if total_actions else 0.0
+            rtb_ratios.append(rtb_ratio)
         rows.append(
             {
                 "policy": policy,
@@ -447,6 +463,7 @@ def analyze_cooperation(extra_logs: Sequence[Dict[str, Any]]) -> List[Dict[str, 
                 "avg_distance_per_uav": float(np.mean(dist_vals)),
                 "avg_energy_per_uav": float(np.mean(energy_vals)),
                 "avg_overlap_ratio": float(np.mean(overlap_vals)),
+                "avg_rtb_action_ratio": float(np.mean(rtb_ratios)),
             }
         )
     return rows

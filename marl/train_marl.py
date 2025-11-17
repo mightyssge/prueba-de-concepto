@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -18,6 +19,7 @@ from envgen.sim_engine.entities import POI, UAV
 from envgen.sim_engine.utils import ticks_per_cell
 
 from .curriculum import CurriculumManager, CurriculumPhase
+from .envs import (build_lurigancho_fixed_episode, build_lurigancho_random_episode, load_lurigancho_fixed_data, load_lurigancho_map)
 from .networks import CentralCritic, GraphActor
 from .ppo_agent import PPOAgent, Transition
 from .spaces import ACTIONS, LocalObservation, build_action_mask, build_global_state_vector, build_local_observation
@@ -139,31 +141,86 @@ def make_instance(
 
 
 class MarlEnv:
-    def __init__(self, instance: dict, reward_weights: RewardWeights):
+
+    def __init__(
+
+        self,
+
+        instance: dict,
+
+        reward_weights: RewardWeights,
+
+        *,
+
+        global_obs: Optional[object] = None,
+
+        hooks: Optional[Dict[str, Callable[[int, int], None]]] = None,
+
+    ):
+
         self.grid = instance["grid"]
+
         self.base_xy = instance["base_xy"]
+
         self.pois: List[POI] = instance["pois"]
+
         self.uavs: List[UAV] = instance["uavs"]
+
         self.distmap = instance["distmap"]
+
         self.energy_map = instance["energy_map"]
+
         self.E_max = instance["E_max"]
+
         self.E_reserve = instance["E_reserve"]
+
         self.e_move_ortho = instance["e_move_ortho"]
+
         self.e_move_diag = instance["e_move_diag"]
+
         self.e_wait = instance["e_wait"]
+
         self.horizon_ticks = instance["horizon_ticks"]
+
         self.ticks_per_step = instance["ticks_per_step"]
+
         self.L_o = instance.get("L_o", 1.0)
+
         self.L_d = instance.get("L_d", 1.0)
+
         self.rewards = reward_weights
+
+        self.global_obs = global_obs
+
+        hooks = hooks or {}
+
+        self._on_visit = hooks.get("on_visit")
+
+        self._on_service = hooks.get("on_service")
+
         self.tick = 0
+
         self.steps_ortho = {u.uid: 0 for u in self.uavs}
+
         self.steps_diag = {u.uid: 0 for u in self.uavs}
+
         self.rtb_count = 0
+
         self.energy_spent = {u.uid: 0.0 for u in self.uavs}
+
         self.served_counts = {u.uid: 0 for u in self.uavs}
+
         # Track action usage per episode for debugging (4.4.3 / action sanity checks)
+
         self.action_hist: Dict[int, int] = {i: 0 for i in range(len(ACTIONS))}
+
+        if self._on_visit is not None:
+
+            for u in self.uavs:
+
+                self._on_visit(u.pos[0], u.pos[1])
+
+
 
     def _rtb_step(self, uav: UAV) -> float:
         """Moves one step along the gradient to base. Returns energy spent."""
@@ -204,6 +261,8 @@ class MarlEnv:
         uav.pos = (ny, nx)
         uav.E -= step_cost
         self.energy_spent[uav.uid] += step_cost
+        if self._on_visit is not None:
+            self._on_visit(ny, nx)
         if diag:
             self.steps_diag[uav.uid] += 1
         else:
@@ -226,28 +285,64 @@ class MarlEnv:
             else:
                 timeliness_reward = 1.0
         poi.tardiness = tardiness
+        if self._on_service is not None:
+            self._on_service(poi.y, poi.x)
         return float(poi.priority), timeliness_reward, tardiness
 
     def observations(self) -> Dict[int, LocalObservation]:
+
         obs = {}
+
+        global_vec: Optional[np.ndarray] = None
+
+        if self.global_obs is not None:
+
+            if hasattr(self.global_obs, 'flatten'):
+
+                global_vec = np.asarray(self.global_obs.flatten(), dtype=np.float32)
+
+            else:
+
+                global_vec = np.asarray(self.global_obs, dtype=np.float32)
+
         for u in self.uavs:
+
             obs[u.uid] = build_local_observation(
+
                 u,
+
                 self.uavs,
+
                 self.pois,
+
                 self.grid,
+
                 self.base_xy,
+
                 self.distmap,
+
                 self.energy_map,
+
                 tick=self.tick,
+
                 horizon_ticks=self.horizon_ticks,
+
                 E_max=self.E_max,
+
                 E_reserve=self.E_reserve,
+
                 e_move_ortho=self.e_move_ortho,
+
                 e_move_diag=self.e_move_diag,
+
                 e_wait=self.e_wait,
+
                 ticks_per_step=self.ticks_per_step,
+
+                global_feats=global_vec,
+
             )
+
         return obs
 
     def global_state(self) -> np.ndarray:
@@ -378,9 +473,29 @@ def train_loop(args) -> None:
     curriculum = _default_curriculum()
     rew = RewardWeights()
 
-    # Dimensions from observation builders
-    sample_instance = make_instance(cfg, curriculum.current, rng, split="train")
-    env = MarlEnv(sample_instance, rew)
+    env_mode = args.env_mode.lower()
+    map_data = None
+    fixed_data = None
+    if env_mode in ("lurigancho_random", "lurigancho_fixed"):
+        scenario_path = Path(args.scenario_file or "lurigancho_scenario.json")
+        map_data = load_lurigancho_map(scenario_path)
+        if env_mode == "lurigancho_fixed":
+            pois_path = Path(args.pois_file or "lurigancho_pois_val.json")
+            fixed_data = load_lurigancho_fixed_data(pois_path)
+
+    def build_instance(split: str):
+        if env_mode == "abstract":
+            return make_instance(cfg, curriculum.current, rng, split=split), None, None
+        if env_mode == "lurigancho_random":
+            return build_lurigancho_random_episode(map_data, cfg, rng, split=split)
+        if env_mode == "lurigancho_fixed":
+            if fixed_data is None:
+                raise ValueError("--pois-file is required for lurigancho_fixed env")
+            return build_lurigancho_fixed_episode(map_data, fixed_data, cfg, rng, split=split)
+        raise ValueError(f"Unknown env-mode: {env_mode}")
+
+    sample_instance, sample_global_obs, sample_hooks = build_instance("train")
+    env = MarlEnv(sample_instance, rew, global_obs=sample_global_obs, hooks=sample_hooks)
     obs_dim = env.observations()[0].obs_vector.size
     node_dim = env.observations()[0].node_feats.shape[1]
     global_dim = env.global_state().size
@@ -399,14 +514,20 @@ def train_loop(args) -> None:
         clip_eps=args.clip_eps,
     )
 
+    if args.pretrained:
+        state = torch.load(args.pretrained, map_location=agent.device)
+        agent.actor.load_state_dict(state['actor'])
+        agent.critic.load_state_dict(state['critic'])
+        print(f"[train] loaded pretrained checkpoint {args.pretrained}")
+
     best_cov = 0.0
     replay_cache: List[Transition] = []
 
     for ep in range(args.episodes):
         if ep > 0:
             # refresh instance each episode
-            instance = make_instance(cfg, curriculum.current, rng, split="train")
-            env = MarlEnv(instance, rew)
+            instance, global_obs, hooks = build_instance("train")
+            env = MarlEnv(instance, rew, global_obs=global_obs, hooks=hooks)
 
         obs = env.observations()
         done = False
@@ -465,20 +586,25 @@ def train_loop(args) -> None:
 
         stats = agent.update(batch_size=args.batch_size, epochs=args.epochs)
         best_cov = max(best_cov, info.get("coverage", 0.0))
-        advanced = curriculum.update(info.get("coverage", 0.0))
+        if env_mode == "abstract":
+            advanced = curriculum.update(info.get("coverage", 0.0))
+        else:
+            advanced = False
 
+        phase_label = curriculum.current.name if env_mode == "abstract" else env_mode
         print(
             f"[ep {ep:04d}] cov={info.get('coverage', 0.0):.3f} "
             f"R={mean_ret:.3f} "
             f"A={mean_adv:.3f} "
-            f"phase={curriculum.current.name} "
+            f"phase={phase_label} "
             f"loss_pi={stats['actor_loss']:.4f} loss_v={stats['critic_loss']:.4f} entr={stats['entropy']:.4f}"
         )
         if advanced:
             print(f"--> curriculum advanced to {curriculum.current.name}")
 
         # Retain a slice of past experiences to mitigate forgetting
-        retain_n = int(round(len(used_data) * curriculum.current.retain_ratio))
+        retain_ratio = curriculum.current.retain_ratio if env_mode == 'abstract' else curriculum.phases[-1].retain_ratio
+        retain_n = int(round(len(used_data) * retain_ratio))
         if retain_n > 0 and used_data:
             idx = rng.choice(len(used_data), size=retain_n, replace=False)
             replay_cache = [used_data[int(i)] for i in idx]
@@ -500,6 +626,10 @@ def parse_args(argv=None):
     ap.add_argument("--lam", type=float, default=0.95)
     ap.add_argument("--seed", type=int, default=1234)
     ap.add_argument("--save", type=str, default=None, help="Optional path to save model checkpoints")
+    ap.add_argument("--env-mode", type=str, default="abstract", choices=["abstract", "lurigancho_random", "lurigancho_fixed"], help="Environment flavor to train on")
+    ap.add_argument("--scenario-file", type=str, default=None, help="Path to Lurigancho scenario JSON")
+    ap.add_argument("--pois-file", type=str, default=None, help="Path to Lurigancho fixed POIs JSON")
+    ap.add_argument("--pretrained", type=str, default=None, help="Checkpoint to load before training")
     ap.add_argument("--lr-actor", type=float, default=3e-4, help="Actor learning rate (4.3.3)")
     ap.add_argument("--lr-critic", type=float, default=3e-4, help="Critic learning rate (4.3.3)")
     ap.add_argument("--entropy-coef", type=float, default=0.01, help="Entropy coefficient (4.3.3)")

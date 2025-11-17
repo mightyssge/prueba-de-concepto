@@ -16,6 +16,12 @@ from envgen.sim_engine.entities import POI, UAV
 from .curriculum import CurriculumManager
 from .networks import CentralCritic, GraphActor
 from .ppo_agent import PPOAgent
+from .envs import (
+    load_lurigancho_map,
+    load_lurigancho_fixed_data,
+    build_lurigancho_random_episode,
+    build_lurigancho_fixed_episode,
+)
 from .spaces import ACTIONS, build_action_mask
 from .train_marl import RewardWeights, make_instance, MarlEnv, _default_curriculum
 
@@ -328,6 +334,37 @@ def evaluate_policy(
     return per_episode, aggregates, extra_logs
 
 
+def evaluate_lurigancho_policy(
+    builder_fn: Callable[[int], Tuple[dict, Optional[object], Optional[Dict[str, Callable[[int, int], None]]]]],
+    seeds: Sequence[int],
+    policy_factory: Callable[[], PolicyInterface],
+    *,
+    policy_name: str,
+    log_trajectories: bool = False,
+) -> Tuple[List[Dict[str, float]], Dict[str, float], List[Dict[str, Any]]]:
+    rew = RewardWeights()
+    per_episode: List[Dict[str, float]] = []
+    aggregates: Dict[str, float] = {}
+    extra_logs: List[Dict[str, Any]] = []
+    for seed in seeds:
+        instance, global_obs, hooks = builder_fn(seed)
+        env = MarlEnv(instance, rew, global_obs=global_obs, hooks=hooks)
+        policy = policy_factory()
+        metrics, extras = rollout_policy(env, policy, log_trajectories=log_trajectories)
+        metrics["phase_id"] = 3
+        metrics["seed"] = seed
+        per_episode.append(metrics)
+        extras.update({"policy": policy_name, "phase_id": 3, "seed": seed})
+        extra_logs.append(extras)
+    if per_episode:
+        keys = [k for k in per_episode[0].keys() if k not in ("phase_id", "seed")]
+        for k in keys:
+            values = [m[k] for m in per_episode]
+            aggregates[k + "_mean"] = float(np.mean(values))
+            aggregates[k + "_std"] = float(np.std(values, ddof=0))
+    return per_episode, aggregates, extra_logs
+
+
 def write_metrics_csv(path: Path, rows: Sequence[Dict[str, float]]) -> None:
     if not rows:
         return
@@ -544,9 +581,88 @@ def run_coop_mode(args, cfg, curriculum):
         print(f"[cooperation] {row}")
 
 
+def evaluate_lurigancho(args, cfg, env_mode: str) -> None:
+    if args.mode != "single":
+        raise ValueError("Lurigancho environments currently support --mode single for evaluation.")
+    scenario_path = Path(args.scenario_file or "lurigancho_scenario.json")
+    map_data = load_lurigancho_map(scenario_path)
+    fixed_data = None
+    if env_mode == "lurigancho_fixed":
+        pois_path = Path(args.pois_file or "lurigancho_pois_val.json")
+        fixed_data = load_lurigancho_fixed_data(pois_path)
+    seeds = [args.seed + i for i in range(max(1, args.val_count))]
+
+    def _build_episode(seed: int):
+        local_rng = np.random.default_rng(seed)
+        if env_mode == "lurigancho_random":
+            return build_lurigancho_random_episode(map_data, cfg, local_rng, split="val")
+        return build_lurigancho_fixed_episode(map_data, fixed_data, cfg, local_rng, split="val")
+
+    sample_seed = seeds[0]
+    sample_instance, sample_global_obs, sample_hooks = _build_episode(sample_seed)
+    rew = RewardWeights()
+    env = MarlEnv(sample_instance, rew, global_obs=sample_global_obs, hooks=sample_hooks)
+    obs_dim = env.observations()[0].obs_vector.size
+    node_dim = env.observations()[0].node_feats.shape[1]
+    global_dim = env.global_state().size
+
+    actor = GraphActor(obs_dim=obs_dim, node_feat_dim=node_dim, hidden_dim=128, n_actions=11)
+    critic = CentralCritic(state_dim=global_dim, hidden_dim=128)
+    agent = PPOAgent(actor, critic)
+
+    if args.checkpoint:
+        state = torch.load(args.checkpoint, map_location=agent.device)
+        agent.actor.load_state_dict(state["actor"])
+        agent.critic.load_state_dict(state["critic"])
+        print(f"[eval] loaded checkpoint {args.checkpoint}")
+
+    builder_fn = lambda seed: _build_episode(seed)
+
+    rows: List[Dict[str, float]] = []
+    marl_eps, marl_stats, marl_logs = evaluate_lurigancho_policy(
+        builder_fn,
+        seeds,
+        lambda: MarlActorPolicy(agent),
+        policy_name="marl",
+        log_trajectories=args.log_trajectories,
+    )
+    print("[eval] MARL aggregate:", marl_stats)
+    rows.append({"policy": "marl", **marl_stats})
+
+    if args.baseline and args.baseline.lower() == "greedy":
+        baseline_eps, baseline_stats, baseline_logs = evaluate_lurigancho_policy(
+            builder_fn,
+            seeds,
+            lambda: GreedyBaselinePolicy(),
+            policy_name="greedy",
+            log_trajectories=args.log_trajectories,
+        )
+        print("[eval] baseline aggregate:", baseline_stats)
+        rows.append({"policy": "greedy", **baseline_stats})
+        marl_logs.extend(baseline_logs)
+    else:
+        baseline_logs = []
+
+    if args.out_csv:
+        write_metrics_csv(Path(args.out_csv), rows)
+        print(f"[eval] metrics saved to {args.out_csv}")
+
+    all_logs = marl_logs + baseline_logs
+    if args.log_trajectories and all_logs:
+        summary = analyze_cooperation(all_logs)
+        if args.coop_csv:
+            write_metrics_csv(Path(args.coop_csv), summary)
+        if args.coop_json:
+            write_json(Path(args.coop_json), {"summary": summary, "runs": all_logs})
+
+
 def evaluate(args) -> None:
     cfg = load_config(args.config)
+    env_mode = args.env_mode.lower()
     curriculum = _default_curriculum()
+    if env_mode != 'abstract':
+        evaluate_lurigancho(args, cfg, env_mode)
+        return
     if args.mode == "single":
         run_single_mode(args, cfg, curriculum)
     elif args.mode == "robustness":
@@ -562,6 +678,9 @@ def evaluate(args) -> None:
 def parse_args(argv=None):
     ap = argparse.ArgumentParser("eval_marl")
     ap.add_argument("--config", type=str, required=True)
+    ap.add_argument("--env-mode", type=str, default="abstract", choices=["abstract", "lurigancho_random", "lurigancho_fixed"], help="Environment type for evaluation")
+    ap.add_argument("--scenario-file", type=str, default=None, help="Path to Lurigancho scenario JSON")
+    ap.add_argument("--pois-file", type=str, default=None, help="Path to Lurigancho fixed POIs JSON")
     ap.add_argument("--checkpoint", type=str, default=None, help="Path to actor/critic checkpoint")
     ap.add_argument("--mode", type=str, default="single", choices=["single", "robustness", "sensitivity", "coop"])
     ap.add_argument("--seed", type=int, default=2025, help="Base seed for validation scenario generation")

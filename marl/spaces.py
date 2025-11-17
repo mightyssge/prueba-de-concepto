@@ -248,6 +248,7 @@ def build_local_observation(
     e_move_diag: float,
     e_wait: float,
     ticks_per_step: Optional[int] = None,
+    global_feats: Optional[np.ndarray] = None,
 ) -> LocalObservation:
     """Constructs the local observation tuple for one UAV."""
     H, W = grid.shape
@@ -266,8 +267,10 @@ def build_local_observation(
                 dtype=np.float32,
             ),
             _flight_mode_onehot(uav.state),
-        ]
+        ],
     )
+    if global_feats is not None:
+        obs_vec = np.concatenate([obs_vec, global_feats.astype(np.float32)])
 
     node_feats, adj = build_graph_representation(
         uav,

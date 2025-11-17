@@ -1,0 +1,2323 @@
+{
+  "name": "lurigancho_environment_map",
+  "meta": {
+    "rows": 11,
+    "cols": 30,
+    "dx": 43.22,
+    "dy": 32.41,
+    "total_cells": 330,
+    "base_cell": 120
+  },
+  "cells": {
+    "1": {
+      "cell_id": 0,
+      "row": 0,
+      "col": 0,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "2": {
+      "cell_id": 1,
+      "row": 0,
+      "col": 1,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "3": {
+      "cell_id": 2,
+      "row": 0,
+      "col": 2,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "4": {
+      "cell_id": 3,
+      "row": 0,
+      "col": 3,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "5": {
+      "cell_id": 4,
+      "row": 0,
+      "col": 4,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "6": {
+      "cell_id": 5,
+      "row": 0,
+      "col": 5,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "7": {
+      "cell_id": 6,
+      "row": 0,
+      "col": 6,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "8": {
+      "cell_id": 7,
+      "row": 0,
+      "col": 7,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "9": {
+      "cell_id": 8,
+      "row": 0,
+      "col": 8,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "10": {
+      "cell_id": 9,
+      "row": 0,
+      "col": 9,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "11": {
+      "cell_id": 10,
+      "row": 0,
+      "col": 10,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "12": {
+      "cell_id": 11,
+      "row": 0,
+      "col": 11,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "13": {
+      "cell_id": 12,
+      "row": 0,
+      "col": 12,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "14": {
+      "cell_id": 13,
+      "row": 0,
+      "col": 13,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "15": {
+      "cell_id": 14,
+      "row": 0,
+      "col": 14,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "16": {
+      "cell_id": 15,
+      "row": 0,
+      "col": 15,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "17": {
+      "cell_id": 16,
+      "row": 0,
+      "col": 16,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "18": {
+      "cell_id": 17,
+      "row": 0,
+      "col": 17,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "19": {
+      "cell_id": 18,
+      "row": 0,
+      "col": 18,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "20": {
+      "cell_id": 19,
+      "row": 0,
+      "col": 19,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "21": {
+      "cell_id": 20,
+      "row": 0,
+      "col": 20,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "22": {
+      "cell_id": 21,
+      "row": 0,
+      "col": 21,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "23": {
+      "cell_id": 22,
+      "row": 0,
+      "col": 22,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "24": {
+      "cell_id": 23,
+      "row": 0,
+      "col": 23,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "25": {
+      "cell_id": 24,
+      "row": 0,
+      "col": 24,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "26": {
+      "cell_id": 25,
+      "row": 0,
+      "col": 25,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "27": {
+      "cell_id": 26,
+      "row": 0,
+      "col": 26,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "28": {
+      "cell_id": 27,
+      "row": 0,
+      "col": 27,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "29": {
+      "cell_id": 28,
+      "row": 0,
+      "col": 28,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "30": {
+      "cell_id": 29,
+      "row": 0,
+      "col": 29,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "31": {
+      "cell_id": 30,
+      "row": 1,
+      "col": 0,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "32": {
+      "cell_id": 31,
+      "row": 1,
+      "col": 1,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "33": {
+      "cell_id": 32,
+      "row": 1,
+      "col": 2,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "34": {
+      "cell_id": 33,
+      "row": 1,
+      "col": 3,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "35": {
+      "cell_id": 34,
+      "row": 1,
+      "col": 4,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "36": {
+      "cell_id": 35,
+      "row": 1,
+      "col": 5,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "37": {
+      "cell_id": 36,
+      "row": 1,
+      "col": 6,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "38": {
+      "cell_id": 37,
+      "row": 1,
+      "col": 7,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "39": {
+      "cell_id": 38,
+      "row": 1,
+      "col": 8,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "40": {
+      "cell_id": 39,
+      "row": 1,
+      "col": 9,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "41": {
+      "cell_id": 40,
+      "row": 1,
+      "col": 10,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "42": {
+      "cell_id": 41,
+      "row": 1,
+      "col": 11,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "43": {
+      "cell_id": 42,
+      "row": 1,
+      "col": 12,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "44": {
+      "cell_id": 43,
+      "row": 1,
+      "col": 13,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "45": {
+      "cell_id": 44,
+      "row": 1,
+      "col": 14,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "46": {
+      "cell_id": 45,
+      "row": 1,
+      "col": 15,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "47": {
+      "cell_id": 46,
+      "row": 1,
+      "col": 16,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "48": {
+      "cell_id": 47,
+      "row": 1,
+      "col": 17,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "49": {
+      "cell_id": 48,
+      "row": 1,
+      "col": 18,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "50": {
+      "cell_id": 49,
+      "row": 1,
+      "col": 19,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "51": {
+      "cell_id": 50,
+      "row": 1,
+      "col": 20,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "52": {
+      "cell_id": 51,
+      "row": 1,
+      "col": 21,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "53": {
+      "cell_id": 52,
+      "row": 1,
+      "col": 22,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "54": {
+      "cell_id": 53,
+      "row": 1,
+      "col": 23,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "55": {
+      "cell_id": 54,
+      "row": 1,
+      "col": 24,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "56": {
+      "cell_id": 55,
+      "row": 1,
+      "col": 25,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "57": {
+      "cell_id": 56,
+      "row": 1,
+      "col": 26,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "58": {
+      "cell_id": 57,
+      "row": 1,
+      "col": 27,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "59": {
+      "cell_id": 58,
+      "row": 1,
+      "col": 28,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "60": {
+      "cell_id": 59,
+      "row": 1,
+      "col": 29,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "61": {
+      "cell_id": 60,
+      "row": 2,
+      "col": 0,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "62": {
+      "cell_id": 61,
+      "row": 2,
+      "col": 1,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "63": {
+      "cell_id": 62,
+      "row": 2,
+      "col": 2,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "64": {
+      "cell_id": 63,
+      "row": 2,
+      "col": 3,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "65": {
+      "cell_id": 64,
+      "row": 2,
+      "col": 4,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "66": {
+      "cell_id": 65,
+      "row": 2,
+      "col": 5,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "67": {
+      "cell_id": 66,
+      "row": 2,
+      "col": 6,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "68": {
+      "cell_id": 67,
+      "row": 2,
+      "col": 7,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "69": {
+      "cell_id": 68,
+      "row": 2,
+      "col": 8,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "70": {
+      "cell_id": 69,
+      "row": 2,
+      "col": 9,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "71": {
+      "cell_id": 70,
+      "row": 2,
+      "col": 10,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "72": {
+      "cell_id": 71,
+      "row": 2,
+      "col": 11,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "73": {
+      "cell_id": 72,
+      "row": 2,
+      "col": 12,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "74": {
+      "cell_id": 73,
+      "row": 2,
+      "col": 13,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "75": {
+      "cell_id": 74,
+      "row": 2,
+      "col": 14,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "76": {
+      "cell_id": 75,
+      "row": 2,
+      "col": 15,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "77": {
+      "cell_id": 76,
+      "row": 2,
+      "col": 16,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "78": {
+      "cell_id": 77,
+      "row": 2,
+      "col": 17,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "79": {
+      "cell_id": 78,
+      "row": 2,
+      "col": 18,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "80": {
+      "cell_id": 79,
+      "row": 2,
+      "col": 19,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "81": {
+      "cell_id": 80,
+      "row": 2,
+      "col": 20,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "82": {
+      "cell_id": 81,
+      "row": 2,
+      "col": 21,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "83": {
+      "cell_id": 82,
+      "row": 2,
+      "col": 22,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "84": {
+      "cell_id": 83,
+      "row": 2,
+      "col": 23,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "85": {
+      "cell_id": 84,
+      "row": 2,
+      "col": 24,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "86": {
+      "cell_id": 85,
+      "row": 2,
+      "col": 25,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "87": {
+      "cell_id": 86,
+      "row": 2,
+      "col": 26,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "88": {
+      "cell_id": 87,
+      "row": 2,
+      "col": 27,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "89": {
+      "cell_id": 88,
+      "row": 2,
+      "col": 28,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "90": {
+      "cell_id": 89,
+      "row": 2,
+      "col": 29,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "91": {
+      "cell_id": 90,
+      "row": 3,
+      "col": 0,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "92": {
+      "cell_id": 91,
+      "row": 3,
+      "col": 1,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "93": {
+      "cell_id": 92,
+      "row": 3,
+      "col": 2,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "94": {
+      "cell_id": 93,
+      "row": 3,
+      "col": 3,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "95": {
+      "cell_id": 94,
+      "row": 3,
+      "col": 4,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "96": {
+      "cell_id": 95,
+      "row": 3,
+      "col": 5,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "97": {
+      "cell_id": 96,
+      "row": 3,
+      "col": 6,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "98": {
+      "cell_id": 97,
+      "row": 3,
+      "col": 7,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "99": {
+      "cell_id": 98,
+      "row": 3,
+      "col": 8,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "100": {
+      "cell_id": 99,
+      "row": 3,
+      "col": 9,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "101": {
+      "cell_id": 100,
+      "row": 3,
+      "col": 10,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "102": {
+      "cell_id": 101,
+      "row": 3,
+      "col": 11,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "103": {
+      "cell_id": 102,
+      "row": 3,
+      "col": 12,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "104": {
+      "cell_id": 103,
+      "row": 3,
+      "col": 13,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "105": {
+      "cell_id": 104,
+      "row": 3,
+      "col": 14,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "106": {
+      "cell_id": 105,
+      "row": 3,
+      "col": 15,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "107": {
+      "cell_id": 106,
+      "row": 3,
+      "col": 16,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "108": {
+      "cell_id": 107,
+      "row": 3,
+      "col": 17,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "109": {
+      "cell_id": 108,
+      "row": 3,
+      "col": 18,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "110": {
+      "cell_id": 109,
+      "row": 3,
+      "col": 19,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "111": {
+      "cell_id": 110,
+      "row": 3,
+      "col": 20,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "112": {
+      "cell_id": 111,
+      "row": 3,
+      "col": 21,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "113": {
+      "cell_id": 112,
+      "row": 3,
+      "col": 22,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "114": {
+      "cell_id": 113,
+      "row": 3,
+      "col": 23,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "115": {
+      "cell_id": 114,
+      "row": 3,
+      "col": 24,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "116": {
+      "cell_id": 115,
+      "row": 3,
+      "col": 25,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "117": {
+      "cell_id": 116,
+      "row": 3,
+      "col": 26,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "118": {
+      "cell_id": 117,
+      "row": 3,
+      "col": 27,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "119": {
+      "cell_id": 118,
+      "row": 3,
+      "col": 28,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "120": {
+      "cell_id": 119,
+      "row": 3,
+      "col": 29,
+      "terrain": "hill",
+      "risk_level": "none"
+    },
+    "121": {
+      "cell_id": 120,
+      "row": 4,
+      "col": 0,
+      "terrain": "base",
+      "risk_level": "none"
+    },
+    "122": {
+      "cell_id": 121,
+      "row": 4,
+      "col": 1,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "123": {
+      "cell_id": 122,
+      "row": 4,
+      "col": 2,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "124": {
+      "cell_id": 123,
+      "row": 4,
+      "col": 3,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "125": {
+      "cell_id": 124,
+      "row": 4,
+      "col": 4,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "126": {
+      "cell_id": 125,
+      "row": 4,
+      "col": 5,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "127": {
+      "cell_id": 126,
+      "row": 4,
+      "col": 6,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "128": {
+      "cell_id": 127,
+      "row": 4,
+      "col": 7,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "129": {
+      "cell_id": 128,
+      "row": 4,
+      "col": 8,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "130": {
+      "cell_id": 129,
+      "row": 4,
+      "col": 9,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "131": {
+      "cell_id": 130,
+      "row": 4,
+      "col": 10,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "132": {
+      "cell_id": 131,
+      "row": 4,
+      "col": 11,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "133": {
+      "cell_id": 132,
+      "row": 4,
+      "col": 12,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "134": {
+      "cell_id": 133,
+      "row": 4,
+      "col": 13,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "135": {
+      "cell_id": 134,
+      "row": 4,
+      "col": 14,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "136": {
+      "cell_id": 135,
+      "row": 4,
+      "col": 15,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "137": {
+      "cell_id": 136,
+      "row": 4,
+      "col": 16,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "138": {
+      "cell_id": 137,
+      "row": 4,
+      "col": 17,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "139": {
+      "cell_id": 138,
+      "row": 4,
+      "col": 18,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "140": {
+      "cell_id": 139,
+      "row": 4,
+      "col": 19,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "141": {
+      "cell_id": 140,
+      "row": 4,
+      "col": 20,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "142": {
+      "cell_id": 141,
+      "row": 4,
+      "col": 21,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "143": {
+      "cell_id": 142,
+      "row": 4,
+      "col": 22,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "144": {
+      "cell_id": 143,
+      "row": 4,
+      "col": 23,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "145": {
+      "cell_id": 144,
+      "row": 4,
+      "col": 24,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "146": {
+      "cell_id": 145,
+      "row": 4,
+      "col": 25,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "147": {
+      "cell_id": 146,
+      "row": 4,
+      "col": 26,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "148": {
+      "cell_id": 147,
+      "row": 4,
+      "col": 27,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "149": {
+      "cell_id": 148,
+      "row": 4,
+      "col": 28,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "150": {
+      "cell_id": 149,
+      "row": 4,
+      "col": 29,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "151": {
+      "cell_id": 150,
+      "row": 5,
+      "col": 0,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "152": {
+      "cell_id": 151,
+      "row": 5,
+      "col": 1,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "153": {
+      "cell_id": 152,
+      "row": 5,
+      "col": 2,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "154": {
+      "cell_id": 153,
+      "row": 5,
+      "col": 3,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "155": {
+      "cell_id": 154,
+      "row": 5,
+      "col": 4,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "156": {
+      "cell_id": 155,
+      "row": 5,
+      "col": 5,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "157": {
+      "cell_id": 156,
+      "row": 5,
+      "col": 6,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "158": {
+      "cell_id": 157,
+      "row": 5,
+      "col": 7,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "159": {
+      "cell_id": 158,
+      "row": 5,
+      "col": 8,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "160": {
+      "cell_id": 159,
+      "row": 5,
+      "col": 9,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "161": {
+      "cell_id": 160,
+      "row": 5,
+      "col": 10,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "162": {
+      "cell_id": 161,
+      "row": 5,
+      "col": 11,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "163": {
+      "cell_id": 162,
+      "row": 5,
+      "col": 12,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "164": {
+      "cell_id": 163,
+      "row": 5,
+      "col": 13,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "165": {
+      "cell_id": 164,
+      "row": 5,
+      "col": 14,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "166": {
+      "cell_id": 165,
+      "row": 5,
+      "col": 15,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "167": {
+      "cell_id": 166,
+      "row": 5,
+      "col": 16,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "168": {
+      "cell_id": 167,
+      "row": 5,
+      "col": 17,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "169": {
+      "cell_id": 168,
+      "row": 5,
+      "col": 18,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "170": {
+      "cell_id": 169,
+      "row": 5,
+      "col": 19,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "171": {
+      "cell_id": 170,
+      "row": 5,
+      "col": 20,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "172": {
+      "cell_id": 171,
+      "row": 5,
+      "col": 21,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "173": {
+      "cell_id": 172,
+      "row": 5,
+      "col": 22,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "174": {
+      "cell_id": 173,
+      "row": 5,
+      "col": 23,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "175": {
+      "cell_id": 174,
+      "row": 5,
+      "col": 24,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "176": {
+      "cell_id": 175,
+      "row": 5,
+      "col": 25,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "177": {
+      "cell_id": 176,
+      "row": 5,
+      "col": 26,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "178": {
+      "cell_id": 177,
+      "row": 5,
+      "col": 27,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "179": {
+      "cell_id": 178,
+      "row": 5,
+      "col": 28,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "180": {
+      "cell_id": 179,
+      "row": 5,
+      "col": 29,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "181": {
+      "cell_id": 180,
+      "row": 6,
+      "col": 0,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "182": {
+      "cell_id": 181,
+      "row": 6,
+      "col": 1,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "183": {
+      "cell_id": 182,
+      "row": 6,
+      "col": 2,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "184": {
+      "cell_id": 183,
+      "row": 6,
+      "col": 3,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "185": {
+      "cell_id": 184,
+      "row": 6,
+      "col": 4,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "186": {
+      "cell_id": 185,
+      "row": 6,
+      "col": 5,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "187": {
+      "cell_id": 186,
+      "row": 6,
+      "col": 6,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "188": {
+      "cell_id": 187,
+      "row": 6,
+      "col": 7,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "189": {
+      "cell_id": 188,
+      "row": 6,
+      "col": 8,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "190": {
+      "cell_id": 189,
+      "row": 6,
+      "col": 9,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "191": {
+      "cell_id": 190,
+      "row": 6,
+      "col": 10,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "192": {
+      "cell_id": 191,
+      "row": 6,
+      "col": 11,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "193": {
+      "cell_id": 192,
+      "row": 6,
+      "col": 12,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "194": {
+      "cell_id": 193,
+      "row": 6,
+      "col": 13,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "195": {
+      "cell_id": 194,
+      "row": 6,
+      "col": 14,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "196": {
+      "cell_id": 195,
+      "row": 6,
+      "col": 15,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "197": {
+      "cell_id": 196,
+      "row": 6,
+      "col": 16,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "198": {
+      "cell_id": 197,
+      "row": 6,
+      "col": 17,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "199": {
+      "cell_id": 198,
+      "row": 6,
+      "col": 18,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "200": {
+      "cell_id": 199,
+      "row": 6,
+      "col": 19,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "201": {
+      "cell_id": 200,
+      "row": 6,
+      "col": 20,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "202": {
+      "cell_id": 201,
+      "row": 6,
+      "col": 21,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "203": {
+      "cell_id": 202,
+      "row": 6,
+      "col": 22,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "204": {
+      "cell_id": 203,
+      "row": 6,
+      "col": 23,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "205": {
+      "cell_id": 204,
+      "row": 6,
+      "col": 24,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "206": {
+      "cell_id": 205,
+      "row": 6,
+      "col": 25,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "207": {
+      "cell_id": 206,
+      "row": 6,
+      "col": 26,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "208": {
+      "cell_id": 207,
+      "row": 6,
+      "col": 27,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "209": {
+      "cell_id": 208,
+      "row": 6,
+      "col": 28,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "210": {
+      "cell_id": 209,
+      "row": 6,
+      "col": 29,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "211": {
+      "cell_id": 210,
+      "row": 7,
+      "col": 0,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "212": {
+      "cell_id": 211,
+      "row": 7,
+      "col": 1,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "213": {
+      "cell_id": 212,
+      "row": 7,
+      "col": 2,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "214": {
+      "cell_id": 213,
+      "row": 7,
+      "col": 3,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "215": {
+      "cell_id": 214,
+      "row": 7,
+      "col": 4,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "216": {
+      "cell_id": 215,
+      "row": 7,
+      "col": 5,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "217": {
+      "cell_id": 216,
+      "row": 7,
+      "col": 6,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "218": {
+      "cell_id": 217,
+      "row": 7,
+      "col": 7,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "219": {
+      "cell_id": 218,
+      "row": 7,
+      "col": 8,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "220": {
+      "cell_id": 219,
+      "row": 7,
+      "col": 9,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "221": {
+      "cell_id": 220,
+      "row": 7,
+      "col": 10,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "222": {
+      "cell_id": 221,
+      "row": 7,
+      "col": 11,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "223": {
+      "cell_id": 222,
+      "row": 7,
+      "col": 12,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "224": {
+      "cell_id": 223,
+      "row": 7,
+      "col": 13,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "225": {
+      "cell_id": 224,
+      "row": 7,
+      "col": 14,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "226": {
+      "cell_id": 225,
+      "row": 7,
+      "col": 15,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "227": {
+      "cell_id": 226,
+      "row": 7,
+      "col": 16,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "228": {
+      "cell_id": 227,
+      "row": 7,
+      "col": 17,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "229": {
+      "cell_id": 228,
+      "row": 7,
+      "col": 18,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "230": {
+      "cell_id": 229,
+      "row": 7,
+      "col": 19,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "231": {
+      "cell_id": 230,
+      "row": 7,
+      "col": 20,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "232": {
+      "cell_id": 231,
+      "row": 7,
+      "col": 21,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "233": {
+      "cell_id": 232,
+      "row": 7,
+      "col": 22,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "234": {
+      "cell_id": 233,
+      "row": 7,
+      "col": 23,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "235": {
+      "cell_id": 234,
+      "row": 7,
+      "col": 24,
+      "terrain": "residential",
+      "risk_level": "low"
+    },
+    "236": {
+      "cell_id": 235,
+      "row": 7,
+      "col": 25,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "237": {
+      "cell_id": 236,
+      "row": 7,
+      "col": 26,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "238": {
+      "cell_id": 237,
+      "row": 7,
+      "col": 27,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "239": {
+      "cell_id": 238,
+      "row": 7,
+      "col": 28,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "240": {
+      "cell_id": 239,
+      "row": 7,
+      "col": 29,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "241": {
+      "cell_id": 240,
+      "row": 8,
+      "col": 0,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "242": {
+      "cell_id": 241,
+      "row": 8,
+      "col": 1,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "243": {
+      "cell_id": 242,
+      "row": 8,
+      "col": 2,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "244": {
+      "cell_id": 243,
+      "row": 8,
+      "col": 3,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "245": {
+      "cell_id": 244,
+      "row": 8,
+      "col": 4,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "246": {
+      "cell_id": 245,
+      "row": 8,
+      "col": 5,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "247": {
+      "cell_id": 246,
+      "row": 8,
+      "col": 6,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "248": {
+      "cell_id": 247,
+      "row": 8,
+      "col": 7,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "249": {
+      "cell_id": 248,
+      "row": 8,
+      "col": 8,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "250": {
+      "cell_id": 249,
+      "row": 8,
+      "col": 9,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "251": {
+      "cell_id": 250,
+      "row": 8,
+      "col": 10,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "252": {
+      "cell_id": 251,
+      "row": 8,
+      "col": 11,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "253": {
+      "cell_id": 252,
+      "row": 8,
+      "col": 12,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "254": {
+      "cell_id": 253,
+      "row": 8,
+      "col": 13,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "255": {
+      "cell_id": 254,
+      "row": 8,
+      "col": 14,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "256": {
+      "cell_id": 255,
+      "row": 8,
+      "col": 15,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "257": {
+      "cell_id": 256,
+      "row": 8,
+      "col": 16,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "258": {
+      "cell_id": 257,
+      "row": 8,
+      "col": 17,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "259": {
+      "cell_id": 258,
+      "row": 8,
+      "col": 18,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "260": {
+      "cell_id": 259,
+      "row": 8,
+      "col": 19,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "261": {
+      "cell_id": 260,
+      "row": 8,
+      "col": 20,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "262": {
+      "cell_id": 261,
+      "row": 8,
+      "col": 21,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "263": {
+      "cell_id": 262,
+      "row": 8,
+      "col": 22,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "264": {
+      "cell_id": 263,
+      "row": 8,
+      "col": 23,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "265": {
+      "cell_id": 264,
+      "row": 8,
+      "col": 24,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "266": {
+      "cell_id": 265,
+      "row": 8,
+      "col": 25,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "267": {
+      "cell_id": 266,
+      "row": 8,
+      "col": 26,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "268": {
+      "cell_id": 267,
+      "row": 8,
+      "col": 27,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "269": {
+      "cell_id": 268,
+      "row": 8,
+      "col": 28,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "270": {
+      "cell_id": 269,
+      "row": 8,
+      "col": 29,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "271": {
+      "cell_id": 270,
+      "row": 9,
+      "col": 0,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "272": {
+      "cell_id": 271,
+      "row": 9,
+      "col": 1,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "273": {
+      "cell_id": 272,
+      "row": 9,
+      "col": 2,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "274": {
+      "cell_id": 273,
+      "row": 9,
+      "col": 3,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "275": {
+      "cell_id": 274,
+      "row": 9,
+      "col": 4,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "276": {
+      "cell_id": 275,
+      "row": 9,
+      "col": 5,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "277": {
+      "cell_id": 276,
+      "row": 9,
+      "col": 6,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "278": {
+      "cell_id": 277,
+      "row": 9,
+      "col": 7,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "279": {
+      "cell_id": 278,
+      "row": 9,
+      "col": 8,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "280": {
+      "cell_id": 279,
+      "row": 9,
+      "col": 9,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "281": {
+      "cell_id": 280,
+      "row": 9,
+      "col": 10,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "282": {
+      "cell_id": 281,
+      "row": 9,
+      "col": 11,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "283": {
+      "cell_id": 282,
+      "row": 9,
+      "col": 12,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "284": {
+      "cell_id": 283,
+      "row": 9,
+      "col": 13,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "285": {
+      "cell_id": 284,
+      "row": 9,
+      "col": 14,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "286": {
+      "cell_id": 285,
+      "row": 9,
+      "col": 15,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "287": {
+      "cell_id": 286,
+      "row": 9,
+      "col": 16,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "288": {
+      "cell_id": 287,
+      "row": 9,
+      "col": 17,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "289": {
+      "cell_id": 288,
+      "row": 9,
+      "col": 18,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "290": {
+      "cell_id": 289,
+      "row": 9,
+      "col": 19,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "291": {
+      "cell_id": 290,
+      "row": 9,
+      "col": 20,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "292": {
+      "cell_id": 291,
+      "row": 9,
+      "col": 21,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "293": {
+      "cell_id": 292,
+      "row": 9,
+      "col": 22,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "294": {
+      "cell_id": 293,
+      "row": 9,
+      "col": 23,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "295": {
+      "cell_id": 294,
+      "row": 9,
+      "col": 24,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "296": {
+      "cell_id": 295,
+      "row": 9,
+      "col": 25,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "297": {
+      "cell_id": 296,
+      "row": 9,
+      "col": 26,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "298": {
+      "cell_id": 297,
+      "row": 9,
+      "col": 27,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "299": {
+      "cell_id": 298,
+      "row": 9,
+      "col": 28,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "300": {
+      "cell_id": 299,
+      "row": 9,
+      "col": 29,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "301": {
+      "cell_id": 300,
+      "row": 10,
+      "col": 0,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "302": {
+      "cell_id": 301,
+      "row": 10,
+      "col": 1,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "303": {
+      "cell_id": 302,
+      "row": 10,
+      "col": 2,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "304": {
+      "cell_id": 303,
+      "row": 10,
+      "col": 3,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "305": {
+      "cell_id": 304,
+      "row": 10,
+      "col": 4,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "306": {
+      "cell_id": 305,
+      "row": 10,
+      "col": 5,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "307": {
+      "cell_id": 306,
+      "row": 10,
+      "col": 6,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "308": {
+      "cell_id": 307,
+      "row": 10,
+      "col": 7,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "309": {
+      "cell_id": 308,
+      "row": 10,
+      "col": 8,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "310": {
+      "cell_id": 309,
+      "row": 10,
+      "col": 9,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "311": {
+      "cell_id": 310,
+      "row": 10,
+      "col": 10,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "312": {
+      "cell_id": 311,
+      "row": 10,
+      "col": 11,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "313": {
+      "cell_id": 312,
+      "row": 10,
+      "col": 12,
+      "terrain": "residential",
+      "risk_level": "medium"
+    },
+    "314": {
+      "cell_id": 313,
+      "row": 10,
+      "col": 13,
+      "terrain": "residential",
+      "risk_level": "high"
+    },
+    "315": {
+      "cell_id": 314,
+      "row": 10,
+      "col": 14,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "316": {
+      "cell_id": 315,
+      "row": 10,
+      "col": 15,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "317": {
+      "cell_id": 316,
+      "row": 10,
+      "col": 16,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "318": {
+      "cell_id": 317,
+      "row": 10,
+      "col": 17,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "319": {
+      "cell_id": 318,
+      "row": 10,
+      "col": 18,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "320": {
+      "cell_id": 319,
+      "row": 10,
+      "col": 19,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "321": {
+      "cell_id": 320,
+      "row": 10,
+      "col": 20,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "322": {
+      "cell_id": 321,
+      "row": 10,
+      "col": 21,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "323": {
+      "cell_id": 322,
+      "row": 10,
+      "col": 22,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "324": {
+      "cell_id": 323,
+      "row": 10,
+      "col": 23,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "325": {
+      "cell_id": 324,
+      "row": 10,
+      "col": 24,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "326": {
+      "cell_id": 325,
+      "row": 10,
+      "col": 25,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "327": {
+      "cell_id": 326,
+      "row": 10,
+      "col": 26,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "328": {
+      "cell_id": 327,
+      "row": 10,
+      "col": 27,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "329": {
+      "cell_id": 328,
+      "row": 10,
+      "col": 28,
+      "terrain": "river",
+      "risk_level": "high"
+    },
+    "330": {
+      "cell_id": 329,
+      "row": 10,
+      "col": 29,
+      "terrain": "river",
+      "risk_level": "high"
+    }
+  }
+}

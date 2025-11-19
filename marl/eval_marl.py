@@ -11,7 +11,9 @@ import numpy as np
 import torch
 
 from envgen.config import load_config
+from envgen.gridsearch import bfs_dist
 from envgen.sim_engine.entities import POI, UAV
+from envgen.sim_engine.planner import greedy_follow_distmap
 
 from .curriculum import CurriculumManager
 from .networks import CentralCritic, GraphActor
@@ -138,8 +140,9 @@ class PolicyInterface:
 class MarlActorPolicy(PolicyInterface):
     """Wraps PPOAgent for deterministic evaluation (4.4.1 & 4.4.2)."""
 
-    def __init__(self, agent: PPOAgent):
+    def __init__(self, agent: PPOAgent, *, deterministic: bool = True):
         self.agent = agent
+        self.deterministic = deterministic
 
     def reset(self) -> None:
         pass
@@ -152,7 +155,7 @@ class MarlActorPolicy(PolicyInterface):
                 ob.node_feats,
                 ob.adj_matrix,
                 ob.action_mask,
-                deterministic=True,
+                deterministic=self.deterministic,
             )
             actions[uid] = act
         return actions
@@ -243,6 +246,208 @@ class GreedyBaselinePolicy(PolicyInterface):
                 actions[u.uid] = move_action
         return actions
 
+
+class GeneticBaselinePolicy(PolicyInterface):
+    """Simple GA-based planner that assigns static POI routes to the UAV fleet."""
+
+    def __init__(self, pop_size: int = 32, generations: int = 40, mutation_prob: float = 0.2):
+        self.pop_size = pop_size
+        self.generations = generations
+        self.mutation_prob = mutation_prob
+        self.rng = np.random.default_rng(1234)
+        self.routes: Dict[int, List[Tuple[int, int]]] = {}
+        self.current_targets: Dict[int, Optional[Tuple[int, int]]] = {}
+        self.paths: Dict[int, List[Tuple[int, int]]] = {}
+        self.poi_lookup: Dict[Tuple[int, int], POI] = {}
+        self.dist_cache: Dict[Tuple[int, int], np.ndarray] = {}
+
+    def reset(self) -> None:
+        self.routes = {}
+        self.current_targets = {}
+        self.paths = {}
+        self.poi_lookup = {}
+        self.dist_cache = {}
+
+    def select_actions(self, env: MarlEnv, observations: Dict[int, Any]) -> Dict[int, int]:
+        if not self.routes:
+            self._plan_routes(env)
+        actions: Dict[int, int] = {}
+        for u in env.uavs:
+            actions[u.uid] = self._next_action(env, u)
+        return actions
+
+    def _plan_routes(self, env: MarlEnv) -> None:
+        self.poi_lookup = {(p.y, p.x): p for p in env.pois}
+        remaining_pois = [p for p in env.pois if not p.served]
+        self.dist_cache = {}
+        if not remaining_pois:
+            for u in env.uavs:
+                self.routes[u.uid] = []
+                self.current_targets[u.uid] = None
+                self.paths[u.uid] = []
+            return
+        best_routes_idx = self._run_ga(env, remaining_pois)
+        poi_positions = [(p.y, p.x) for p in remaining_pois]
+        self.routes = {}
+        self.paths = {}
+        for idx, u in enumerate(env.uavs):
+            route_idxs = best_routes_idx[idx] if idx < len(best_routes_idx) else []
+            coords = [poi_positions[i] for i in route_idxs]
+            self.routes[u.uid] = coords
+            self.paths[u.uid] = []
+        self.current_targets = {}
+        for u in env.uavs:
+            self._advance_route(u.uid)
+
+    def _advance_route(self, uid: int) -> Optional[Tuple[int, int]]:
+        route = self.routes.get(uid, [])
+        while route:
+            target = route[0]
+            poi = self.poi_lookup.get(target)
+            if poi is None or poi.served:
+                route.pop(0)
+                continue
+            self.current_targets[uid] = target
+            self.paths[uid] = []
+            return target
+        self.current_targets[uid] = None
+        self.paths[uid] = []
+        return None
+
+    def _next_action(self, env: MarlEnv, uav: UAV) -> int:
+        if getattr(uav, "service_left", 0) > 0 and uav.state == "servicing":
+            return 9
+        target = self.current_targets.get(uav.uid)
+        if target is None:
+            return 9
+        poi = self.poi_lookup.get(target)
+        if poi is None or poi.served:
+            route = self.routes.get(uav.uid, [])
+            if route:
+                route.pop(0)
+            self._advance_route(uav.uid)
+            target = self.current_targets.get(uav.uid)
+            if target is None:
+                return 9
+        if uav.pos == target:
+            return 8
+        path = self.paths.get(uav.uid)
+        if path is None or not path:
+            new_path = self._build_path(env, uav.pos, target)
+            self.paths[uav.uid] = new_path
+        path = self.paths.get(uav.uid, [])
+        if not path:
+            return 9
+        ny, nx = path.pop(0)
+        dy = ny - uav.pos[0]
+        dx = nx - uav.pos[1]
+        for action, (ady, adx) in ACTIONS.items():
+            if (ady, adx) == (dy, dx):
+                return action
+        return 9
+
+    def _build_path(self, env: MarlEnv, start: Tuple[int, int], target: Tuple[int, int]) -> List[Tuple[int, int]]:
+        distmap = self._ensure_distmap(env, target)
+        if np.isinf(distmap[start[0], start[1]]):
+            return []
+        path = greedy_follow_distmap(distmap, start, target)
+        return list(path or [])
+
+    def _run_ga(self, env: MarlEnv, pois: Sequence[POI]) -> List[List[int]]:
+        n = len(pois)
+        num_uavs = max(1, len(env.uavs))
+        if n == 0:
+            return [[] for _ in range(num_uavs)]
+        population = [self.rng.permutation(n).tolist() for _ in range(self.pop_size)]
+        def score(gene):
+            fitness, _ = self._evaluate_gene(gene, env, pois, num_uavs)
+            return fitness
+        best_gene = min(population, key=score)
+        for _ in range(self.generations):
+            scored = [(score(g), g) for g in population]
+            scored.sort(key=lambda x: x[0])
+            elites = [gene for _, gene in scored[: max(1, self.pop_size // 5)]]
+            new_population = [elites[0][:]]
+            while len(new_population) < self.pop_size:
+                parent1 = self._select_gene(scored)
+                parent2 = self._select_gene(scored)
+                child = self._crossover(parent1, parent2)
+                if self.rng.random() < self.mutation_prob:
+                    self._mutate(child)
+                new_population.append(child)
+            population = new_population
+            best_gene = elites[0][:]
+        _, best_routes = self._evaluate_gene(best_gene, env, pois, num_uavs)
+        while len(best_routes) < len(env.uavs):
+            best_routes.append([])
+        return best_routes[: len(env.uavs)]
+
+    def _evaluate_gene(
+        self,
+        gene: Sequence[int],
+        env: MarlEnv,
+        pois: Sequence[POI],
+        num_uavs: int,
+    ) -> Tuple[float, List[List[int]]]:
+        routes: List[List[int]] = [[] for _ in range(num_uavs)]
+        if not gene:
+            return 0.0, routes
+        for idx, poi_idx in enumerate(gene):
+            routes[idx % num_uavs].append(int(poi_idx))
+        max_time = 0.0
+        base_pos = env.base_xy
+        for route in routes:
+            current = base_pos
+            total = 0.0
+            for poi_idx in route:
+                target = (pois[poi_idx].y, pois[poi_idx].x)
+                total += self._distance_between(current, target, env)
+                total += float(getattr(pois[poi_idx], "dwell_ticks_eff", getattr(pois[poi_idx], "dwell_ticks", 1)))
+                current = target
+            max_time = max(max_time, total)
+        return max_time, routes
+
+    def _select_gene(self, scored: Sequence[Tuple[float, List[int]]]) -> List[int]:
+        k = min(3, len(scored))
+        idx = self.rng.integers(0, len(scored), size=k)
+        best = min((scored[i] for i in idx), key=lambda x: x[0])
+        return best[1][:]
+
+    def _crossover(self, parent1: Sequence[int], parent2: Sequence[int]) -> List[int]:
+        if len(parent1) <= 1:
+            return list(parent1)
+        a, b = sorted(self.rng.integers(0, len(parent1), size=2))
+        if a == b:
+            b = min(len(parent1), a + 1)
+        child = [None] * len(parent1)
+        child[a:b] = parent1[a:b]
+        ptr = 0
+        for gene in parent2:
+            if gene in child:
+                continue
+            while ptr < len(child) and child[ptr] is not None:
+                ptr += 1
+            if ptr < len(child):
+                child[ptr] = gene
+        return [int(g) for g in child if g is not None]
+
+    def _mutate(self, gene: List[int]) -> None:
+        if len(gene) < 2:
+            return
+        a, b = self.rng.integers(0, len(gene), size=2)
+        gene[a], gene[b] = gene[b], gene[a]
+
+    def _distance_between(self, source: Tuple[int, int], target: Tuple[int, int], env: MarlEnv) -> float:
+        distmap = self._ensure_distmap(env, target)
+        value = distmap[source[0], source[1]]
+        if np.isinf(value):
+            return 1e6
+        return float(value)
+
+    def _ensure_distmap(self, env: MarlEnv, target: Tuple[int, int]) -> np.ndarray:
+        if target not in self.dist_cache:
+            self.dist_cache[target] = bfs_dist(env.grid, target)
+        return self.dist_cache[target]
 
 def rollout_policy(
     env: MarlEnv,
@@ -509,6 +714,108 @@ def analyze_cooperation(extra_logs: Sequence[Dict[str, Any]]) -> List[Dict[str, 
     return rows
 
 
+def _log_episode_metrics(policy: str, episodes: Sequence[Dict[str, Any]]) -> None:
+    for idx, metrics in enumerate(episodes):
+        msg = (
+            f"[eval][{policy} ep {idx:03d}] "
+            f"seed={metrics.get('seed')} "
+            f"cov={float(metrics.get('coverage', 0.0)):.3f} "
+            f"dist={float(metrics.get('distance', 0.0)):.1f} "
+            f"energy={float(metrics.get('energy_per_uav', 0.0)):.1f} "
+            f"rtb={float(metrics.get('rtb', 0.0)):.1f} "
+            f"served={float(metrics.get('served', 0.0)):.1f}"
+        )
+        print(msg)
+
+
+def _sanitize_for_json(obj: Any) -> Any:
+    if isinstance(obj, dict):
+        return {str(k): _sanitize_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_for_json(v) for v in obj]
+    if isinstance(obj, tuple):
+        return [_sanitize_for_json(v) for v in obj]
+    if isinstance(obj, np.generic):
+        return obj.item()
+    return obj
+
+
+def write_eval_episode_json(path: Path, policy_details: Dict[str, Dict[str, List[Dict[str, Any]]]]) -> None:
+    payload = []
+    for policy, data in policy_details.items():
+        episodes = data.get("episodes") or []
+        extras = data.get("extras") or []
+        merged = []
+        for idx, metrics in enumerate(episodes):
+            entry = {
+                "index": idx,
+                "metrics": _sanitize_for_json(metrics),
+            }
+            if idx < len(extras):
+                entry["extras"] = _sanitize_for_json(extras[idx])
+            merged.append(entry)
+        payload.append({"policy": policy, "episodes": merged})
+    write_json(path, {"policies": payload})
+
+
+def generate_eval_plots(out_dir: Path, policy_details: Dict[str, Dict[str, List[Dict[str, Any]]]], rows: Sequence[Dict[str, float]]) -> None:
+    try:
+        import matplotlib.pyplot as plt  # type: ignore
+    except ImportError:
+        print("[plots] matplotlib not installed; skipping plot generation.")
+        return
+    out_dir.mkdir(parents=True, exist_ok=True)
+    per_episode_metrics = [
+        ("coverage", "Coverage per Episode", "Coverage"),
+        ("distance", "Distance per Episode", "Distance (m)"),
+        ("energy_per_uav", "Energy per UAV per Episode", "Energy"),
+    ]
+    for metric, title, ylabel in per_episode_metrics:
+        plt.figure()
+        plotted = False
+        for policy, data in policy_details.items():
+            series = [float(ep.get(metric, 0.0)) for ep in data.get("episodes", [])]
+            if not series:
+                continue
+            plt.plot(range(1, len(series) + 1), series, label=policy)
+            plotted = True
+        if not plotted:
+            plt.close()
+            continue
+        plt.title(title)
+        plt.xlabel("Episode")
+        plt.ylabel(ylabel)
+        plt.grid(True, alpha=0.3)
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(out_dir / f"{metric}_per_episode.png")
+        plt.close()
+
+    bar_metrics = [
+        ("coverage_mean", "Coverage Mean"),
+        ("distance_mean", "Distance Mean"),
+        ("energy_per_uav_mean", "Energy per UAV Mean"),
+        ("rtb_mean", "RTB Mean"),
+    ]
+    for metric, title in bar_metrics:
+        plt.figure()
+        policies = []
+        values = []
+        for row in rows:
+            if metric in row:
+                policies.append(row["policy"])
+                values.append(float(row[metric]))
+        if not values:
+            plt.close()
+            continue
+        plt.bar(policies, values, color=["#0072B2", "#E69F00", "#009E73", "#D55E00"][: len(values)])
+        plt.title(title)
+        plt.ylabel(metric.replace("_", " ").title())
+        plt.tight_layout()
+        plt.savefig(out_dir / f"{metric}_bar.png")
+        plt.close()
+
+
 def run_single_mode(args, cfg, curriculum):
     seeds = [int(s) for s in args.scenario_seeds.split(",")] if args.scenario_seeds else [args.seed + i for i in range(args.val_count)]
     scenarios = build_phase_validation_set(cfg, curriculum, args.val_phase, seeds)
@@ -619,35 +926,59 @@ def evaluate_lurigancho(args, cfg, env_mode: str) -> None:
     builder_fn = lambda seed: _build_episode(seed)
 
     rows: List[Dict[str, float]] = []
+    policy_details: Dict[str, Dict[str, List[Dict[str, Any]]]] = {}
+
     marl_eps, marl_stats, marl_logs = evaluate_lurigancho_policy(
         builder_fn,
         seeds,
-        lambda: MarlActorPolicy(agent),
+        lambda: MarlActorPolicy(agent, deterministic=not args.stochastic_eval),
         policy_name="marl",
         log_trajectories=args.log_trajectories,
     )
     print("[eval] MARL aggregate:", marl_stats)
     rows.append({"policy": "marl", **marl_stats})
+    policy_details["marl"] = {"episodes": marl_eps, "extras": marl_logs}
+    if args.log_per_episode:
+        _log_episode_metrics("marl", marl_eps)
 
-    if args.baseline and args.baseline.lower() == "greedy":
+    baseline_names: List[str] = []
+    if args.baseline:
+        baseline_names = [name.strip().lower() for name in args.baseline.split(",") if name.strip()]
+    baseline_factories = {
+        "greedy": lambda: GreedyBaselinePolicy(),
+        "genetic": lambda: GeneticBaselinePolicy(),
+    }
+    all_logs = list(marl_logs)
+    for base_name in baseline_names:
+        factory = baseline_factories.get(base_name)
+        if factory is None:
+            print(f"[eval] baseline '{base_name}' is not supported; skipping.")
+            continue
         baseline_eps, baseline_stats, baseline_logs = evaluate_lurigancho_policy(
             builder_fn,
             seeds,
-            lambda: GreedyBaselinePolicy(),
-            policy_name="greedy",
+            factory,
+            policy_name=base_name,
             log_trajectories=args.log_trajectories,
         )
-        print("[eval] baseline aggregate:", baseline_stats)
-        rows.append({"policy": "greedy", **baseline_stats})
-        marl_logs.extend(baseline_logs)
-    else:
-        baseline_logs = []
+        print(f"[eval] {base_name} aggregate:", baseline_stats)
+        rows.append({"policy": base_name, **baseline_stats})
+        policy_details[base_name] = {"episodes": baseline_eps, "extras": baseline_logs}
+        if args.log_per_episode:
+            _log_episode_metrics(base_name, baseline_eps)
+        all_logs.extend(baseline_logs)
 
     if args.out_csv:
         write_metrics_csv(Path(args.out_csv), rows)
         print(f"[eval] metrics saved to {args.out_csv}")
 
-    all_logs = marl_logs + baseline_logs
+    if args.episodes_json:
+        write_eval_episode_json(Path(args.episodes_json), policy_details)
+        print(f"[eval] episode logs saved to {args.episodes_json}")
+
+    if args.plots_dir:
+        generate_eval_plots(Path(args.plots_dir), policy_details, rows)
+
     if args.log_trajectories and all_logs:
         summary = analyze_cooperation(all_logs)
         if args.coop_csv:
@@ -684,8 +1015,17 @@ def parse_args(argv=None):
     ap.add_argument("--checkpoint", type=str, default=None, help="Path to actor/critic checkpoint")
     ap.add_argument("--mode", type=str, default="single", choices=["single", "robustness", "sensitivity", "coop"])
     ap.add_argument("--seed", type=int, default=2025, help="Base seed for validation scenario generation")
-    ap.add_argument("--baseline", type=str, default=None, help="Optional baseline policy name (e.g., 'greedy')")
+    ap.add_argument(
+        "--baseline",
+        type=str,
+        default=None,
+        help="Optional baseline policies (comma-separated, e.g., 'greedy,genetic'; genetic supported in Lurigancho modes)",
+    )
     ap.add_argument("--log-trajectories", action="store_true", help="Enable trajectory logging during evaluation (single mode)")
+    ap.add_argument("--log-per-episode", action="store_true", help="Print per-episode metrics during evaluation")
+    ap.add_argument("--episodes-json", type=str, default=None, help="Path to store detailed per-episode metrics/extras in JSON")
+    ap.add_argument("--plots-dir", type=str, default=None, help="Directory to write evaluation plots")
+    ap.add_argument("--stochastic-eval", action="store_true", help="Use stochastic action sampling for MARL evaluation instead of deterministic argmax")
     # single-mode args
     ap.add_argument("--val-phase", type=int, default=3, choices=[1, 2, 3], help="Phase for single-mode validation")
     ap.add_argument("--val-count", type=int, default=5, help="Number of validation scenarios")

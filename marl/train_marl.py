@@ -27,12 +27,39 @@ from .spaces import ACTIONS, LocalObservation, build_action_mask, build_global_s
 
 @dataclass
 class RewardWeights:
-    w1: float = 5.0  # coverage gain
-    w2: float = 2.0  # priority service reward
-    w3: float = 1.0  # timeliness reward
-    w4: float = 1.0  # tardiness penalty
-    w5: float = 0.01  # energy consumption penalty
-    w6: float = 0.5  # invalid action penalty
+    poi_reward: float = 8.0  # reward multiplier per priority point served
+    timeliness_bonus: float = 1.0  # bonus for meeting TW
+    tardiness_penalty: float = 0.25  # penalty per tick served late
+    violation_penalty: float = 15.0  # penalty per violated TW
+    tick_penalty: float = 1.0  # per-tick penalty to minimize duration
+    idle_base_penalty: float = 1.0  # per-idling UAV penalty if POIs pending
+    invalid_penalty: float = 0.5  # invalid action penalty
+    energy_penalty: float = 0.0  # energy is tracked but not punished
+    full_coverage_bonus: float = 50.0  # terminal bonus when all POIs are served
+    high_coverage_bonus: float = 25.0  # bonus when coverage exceeds threshold
+    high_coverage_threshold: float = 0.9
+
+
+def _load_compatible_state_dict(module: torch.nn.Module, state: Dict[str, torch.Tensor], *, module_name: str) -> None:
+    """Load checkpoint weights, skipping tensors whose shapes no longer match."""
+    current = module.state_dict()
+    loadable: Dict[str, torch.Tensor] = {}
+    skipped: List[str] = []
+    for key, tensor in state.items():
+        if key in current and current[key].shape == tensor.shape:
+            loadable[key] = tensor
+        else:
+            skipped.append(key)
+    info = module.load_state_dict(loadable, strict=False)
+    if skipped:
+        preview = ", ".join(skipped[:5])
+        print(f"[ckpt] {module_name}: skipped {len(skipped)} tensors due to shape mismatch ({preview}...).")
+    if info.unexpected_keys:
+        preview = ", ".join(info.unexpected_keys[:5])
+        print(f"[ckpt] {module_name}: unexpected keys ignored ({preview}...).")
+    if info.missing_keys:
+        preview = ", ".join(info.missing_keys[:5])
+        print(f"[ckpt] {module_name}: missing keys left at init ({preview}...).")
 
 
 def _split_value(cfg_val, split: str) -> float:
@@ -358,6 +385,7 @@ class MarlEnv:
         priority_reward = 0.0
         timeliness_reward = 0.0
         tard_penalty = 0.0
+        violations = 0
 
         poi_lookup = {(p.y, p.x): p for p in self.pois}
 
@@ -398,6 +426,8 @@ class MarlEnv:
                     priority_reward += pr
                     timeliness_reward += tr
                     tard_penalty += tard
+                    if tard > 0:
+                        violations += 1
             elif action == 9:
                 u.E -= self.e_wait
                 energy_spent += self.e_wait
@@ -409,21 +439,35 @@ class MarlEnv:
             if pre_states[u.uid] != "rtb" and u.state == "rtb":
                 self.rtb_count += 1
 
+        idle_base_count = 0
+        if any(not p.served for p in self.pois):
+            for u in self.uavs:
+                if u.pos == self.base_xy and u.state == "idle" and getattr(u, "service_left", 0) <= 0:
+                    idle_base_count += 1
+
         served_after = sum(1 for p in self.pois if p.served)
         if served_after > served_before:
             coverage_gain = (served_after - served_before) / max(len(self.pois), 1)
 
         reward = (
-            self.rewards.w1 * coverage_gain
-            + self.rewards.w2 * priority_reward
-            + self.rewards.w3 * timeliness_reward
-            - self.rewards.w4 * tard_penalty
-            - self.rewards.w5 * energy_spent
-            - self.rewards.w6 * invalid
+            self.rewards.poi_reward * priority_reward
+            + self.rewards.timeliness_bonus * timeliness_reward
+            - self.rewards.tardiness_penalty * tard_penalty
+            - self.rewards.energy_penalty * energy_spent
+            - self.rewards.invalid_penalty * invalid
+            - self.rewards.idle_base_penalty * idle_base_count
+            - self.rewards.tick_penalty
+            - self.rewards.violation_penalty * violations
         )
 
         self.tick += 1
         done = (self.tick >= self.horizon_ticks) or all(p.served for p in self.pois)
+        if done:
+            coverage_ratio = served_after / max(len(self.pois), 1)
+            if coverage_ratio >= 1.0 - 1e-6:
+                reward += self.rewards.full_coverage_bonus
+            elif coverage_ratio >= self.rewards.high_coverage_threshold:
+                reward += self.rewards.high_coverage_bonus
         obs = self.observations()
         info = {
             "served": served_after,
@@ -431,6 +475,8 @@ class MarlEnv:
             "coverage": served_after / max(len(self.pois), 1),
             "energy_spent": energy_spent,
             "invalid": invalid,
+            "idle_base": idle_base_count,
+            "violations": violations,
         }
         return obs, float(reward), bool(done), info
 
@@ -516,8 +562,8 @@ def train_loop(args) -> None:
 
     if args.pretrained:
         state = torch.load(args.pretrained, map_location=agent.device)
-        agent.actor.load_state_dict(state['actor'])
-        agent.critic.load_state_dict(state['critic'])
+        _load_compatible_state_dict(agent.actor, state["actor"], module_name="actor")
+        _load_compatible_state_dict(agent.critic, state["critic"], module_name="critic")
         print(f"[train] loaded pretrained checkpoint {args.pretrained}")
 
     best_cov = 0.0

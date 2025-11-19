@@ -105,8 +105,11 @@ def build_action_mask(
         forced[10] = True
         return forced
 
-    # RTB always allowed
-    mask[10] = True
+    allow_rtb = True
+    if uav.pos == base_xy and uav.E > threshold:
+        allow_rtb = False
+
+    mask[10] = allow_rtb
     return mask
 
 

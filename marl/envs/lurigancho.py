@@ -14,6 +14,7 @@ from envgen.sim_engine.utils import ticks_per_cell
 
 TERRAIN_TO_INT = {"residential": 0, "hill": 1, "river": 2}
 RISK_LABELS = {0: "low", 1: "medium", 2: "high"}
+RISK_VALUE_MAP = {label: val for val, label in RISK_LABELS.items()}
 RISK_PRIORITY = {"low": 1, "medium": 2, "high": 3}
 POI_WEIGHTS = {
     ("residential", "high"): 1.0,
@@ -48,19 +49,36 @@ class LuriganchoMapData:
     @classmethod
     def from_json(cls, path: Path) -> "LuriganchoMapData":
         data = json.loads(Path(path).read_text(encoding="utf-8"))
-        rows = int(data["grid_meta"]["rows"])
-        cols = int(data["grid_meta"]["cols"])
-        base_cell = int(data["base_cell"])
+        meta = data.get("grid_meta") or data.get("meta")
+        if meta is None:
+            raise KeyError("missing grid meta info")
+        rows = int(meta["rows"])
+        cols = int(meta["cols"])
+        base_cell = int(meta.get("base_cell") or data.get("base_cell") or 0)
         base_xy = (base_cell // cols, base_cell % cols)
         terrain_grid = np.full((rows, cols), TERRAIN_TO_INT["residential"], dtype=np.int8)
         risk_grid = np.zeros((rows, cols), dtype=np.int8)
-        terrain_map: Dict[str, str] = data.get("cell_terrain", {})
-        risk_map: Dict[str, int] = data.get("cell_priority", {})
+        terrain_map: Dict[str, str] = dict(data.get("cell_terrain", {}))
+        risk_map: Dict[str, int] = dict(data.get("cell_priority", {}))
+        cells_data = data.get("cells")
+        if isinstance(cells_data, dict):
+            for cell_info in cells_data.values():
+                cell_idx = int(cell_info.get("cell_id") or cell_info.get("id", 0))
+                terrain_map[str(cell_idx)] = cell_info.get("terrain", terrain_map.get(str(cell_idx), "residential"))
+                risk_level = cell_info.get("risk_level")
+                if risk_level is None:
+                    risk_level = cell_info.get("priority_level")
+                if risk_level is not None:
+                    risk_map[str(cell_idx)] = risk_level
         for idx in range(rows * cols):
             r, c = divmod(idx, cols)
             terr = terrain_map.get(str(idx), "residential")
             pri = risk_map.get(str(idx), 0)
             terrain_grid[r, c] = TERRAIN_TO_INT.get(terr, 0)
+            if isinstance(pri, str):
+                pri = RISK_VALUE_MAP.get(pri.lower(), 0)
+            elif pri is None:
+                pri = 0
             risk_grid[r, c] = int(pri)
         return cls(rows=rows, cols=cols, base_cell=base_cell, base_xy=base_xy, terrain_grid=terrain_grid, risk_grid=risk_grid)
 
@@ -338,6 +356,11 @@ def build_lurigancho_fixed_episode(
     energy_map = energy_dist_map(grid, map_data.base_xy, e_move_ortho=e_ortho, e_move_diag=e_diag)
     n_uav_cfg = cfg["uav_specs"]["n_uavs"][split]
     n_uavs = int(rng.integers(int(n_uav_cfg[0]), int(n_uav_cfg[1]) + 1))
+    fixed_overrides = cfg.get("lurigancho_fixed_overrides", {})
+    horizon_ticks = int(fixed_overrides.get("horizon_ticks", max(horizon_ticks, 20000)))
+    E_max = float(fixed_overrides.get("E_max", 1e9))
+    E_reserve = float(fixed_overrides.get("E_reserve", 0.0))
+    n_uavs = int(fixed_overrides.get("n_uavs", 4))
     uavs = [UAV(uid=i, pos=map_data.base_xy, E=E_max) for i in range(n_uavs)]
     instance = {
         "grid": grid,

@@ -346,7 +346,7 @@ def build_lurigancho_fixed_episode(
         poi.risk_level = risk
         pois.append(poi)
         poi_cells.append(cell)
-    split_key = split if split in cfg["uav_specs"]["E_max"] else "val"
+    split_key = split if split in cfg["uav_specs"]["E_max"] else "train"
     E_max = float(cfg["uav_specs"]["E_max"][split_key])
     E_reserve = float(cfg["uav_specs"]["E_reserve"][split_key])
     e_ortho = float(cfg["uav_specs"]["energy_model"]["e_move_ortho"])
@@ -355,12 +355,10 @@ def build_lurigancho_fixed_episode(
     e_wait = float(cfg["uav_specs"]["energy_model"].get("e_wait", 0.0))
     energy_map = energy_dist_map(grid, map_data.base_xy, e_move_ortho=e_ortho, e_move_diag=e_diag)
     n_uav_cfg = cfg["uav_specs"]["n_uavs"][split]
-    n_uavs = int(rng.integers(int(n_uav_cfg[0]), int(n_uav_cfg[1]) + 1))
+    default_n_uavs = int(rng.integers(int(n_uav_cfg[0]), int(n_uav_cfg[1]) + 1))
     fixed_overrides = cfg.get("lurigancho_fixed_overrides", {})
-    horizon_ticks = int(fixed_overrides.get("horizon_ticks", max(horizon_ticks, 20000)))
-    E_max = float(fixed_overrides.get("E_max", 1e9))
-    E_reserve = float(fixed_overrides.get("E_reserve", 0.0))
-    n_uavs = int(fixed_overrides.get("n_uavs", 4))
+    horizon_ticks = int(fixed_overrides.get("horizon_ticks", horizon_ticks))
+    n_uavs = int(fixed_overrides.get("n_uavs", default_n_uavs))
     uavs = [UAV(uid=i, pos=map_data.base_xy, E=E_max) for i in range(n_uavs)]
     instance = {
         "grid": grid,

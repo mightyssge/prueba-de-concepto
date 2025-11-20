@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import csv
+import time
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple
@@ -27,17 +29,20 @@ from .spaces import ACTIONS, LocalObservation, build_action_mask, build_global_s
 
 @dataclass
 class RewardWeights:
-    poi_reward: float = 8.0  # reward multiplier per priority point served
+    poi_reward: float = 10.0  # reward multiplier per priority point served
     timeliness_bonus: float = 1.0  # bonus for meeting TW
-    tardiness_penalty: float = 0.25  # penalty per tick served late
-    violation_penalty: float = 15.0  # penalty per violated TW
-    tick_penalty: float = 1.0  # per-tick penalty to minimize duration
-    idle_base_penalty: float = 1.0  # per-idling UAV penalty if POIs pending
+    tardiness_penalty: float = 0.1  # penalty per tick served late
+    violation_penalty: float = 20.0  # penalty per violated TW
+    tick_penalty: float = 0.2  # per-tick penalty to minimize duration
+    idle_base_penalty: float = 0.5  # per-idling UAV penalty if POIs pending
     invalid_penalty: float = 0.5  # invalid action penalty
     energy_penalty: float = 0.0  # energy is tracked but not punished
-    full_coverage_bonus: float = 50.0  # terminal bonus when all POIs are served
-    high_coverage_bonus: float = 25.0  # bonus when coverage exceeds threshold
+    full_coverage_bonus: float = 60.0  # terminal bonus when all POIs are served
+    high_coverage_bonus: float = 30.0  # bonus when coverage exceeds threshold
     high_coverage_threshold: float = 0.9
+    incremental_bonus: float = 5.0  # bonus for each incremental step of POIs served
+    incremental_step: int = 5
+    reward_scale: float = 5.0
 
 
 def _load_compatible_state_dict(module: torch.nn.Module, state: Dict[str, torch.Tensor], *, module_name: str) -> None:
@@ -170,19 +175,13 @@ def make_instance(
 class MarlEnv:
 
     def __init__(
-
         self,
-
         instance: dict,
-
         reward_weights: RewardWeights,
-
         *,
-
         global_obs: Optional[object] = None,
-
         hooks: Optional[Dict[str, Callable[[int, int], None]]] = None,
-
+        env_mode: str = "abstract",
     ):
 
         self.grid = instance["grid"]
@@ -216,6 +215,7 @@ class MarlEnv:
         self.L_d = instance.get("L_d", 1.0)
 
         self.rewards = reward_weights
+        self.env_mode = env_mode
 
         self.global_obs = global_obs
 
@@ -446,9 +446,16 @@ class MarlEnv:
                     idle_base_count += 1
 
         served_after = sum(1 for p in self.pois if p.served)
+        total_pois = max(len(self.pois), 1)
+        coverage_ratio = served_after / total_pois
         if served_after > served_before:
-            coverage_gain = (served_after - served_before) / max(len(self.pois), 1)
+            coverage_gain = (served_after - served_before) / total_pois
 
+        incremental_before = served_before // self.rewards.incremental_step
+        incremental_after = served_after // self.rewards.incremental_step
+        incremental_bonus = (
+            (incremental_after - incremental_before) * self.rewards.incremental_bonus
+        )
         reward = (
             self.rewards.poi_reward * priority_reward
             + self.rewards.timeliness_bonus * timeliness_reward
@@ -458,21 +465,25 @@ class MarlEnv:
             - self.rewards.idle_base_penalty * idle_base_count
             - self.rewards.tick_penalty
             - self.rewards.violation_penalty * violations
+            + incremental_bonus
         )
 
         self.tick += 1
         done = (self.tick >= self.horizon_ticks) or all(p.served for p in self.pois)
+        if self.env_mode == "lurigancho_fixed" and coverage_ratio >= self.rewards.high_coverage_threshold:
+            done = True
         if done:
-            coverage_ratio = served_after / max(len(self.pois), 1)
             if coverage_ratio >= 1.0 - 1e-6:
                 reward += self.rewards.full_coverage_bonus
             elif coverage_ratio >= self.rewards.high_coverage_threshold:
                 reward += self.rewards.high_coverage_bonus
+        scale = max(self.rewards.reward_scale, 1e-6)
+        reward = reward / scale
         obs = self.observations()
         info = {
             "served": served_after,
             "total_pois": len(self.pois),
-            "coverage": served_after / max(len(self.pois), 1),
+            "coverage": coverage_ratio,
             "energy_spent": energy_spent,
             "invalid": invalid,
             "idle_base": idle_base_count,
@@ -541,7 +552,7 @@ def train_loop(args) -> None:
         raise ValueError(f"Unknown env-mode: {env_mode}")
 
     sample_instance, sample_global_obs, sample_hooks = build_instance("train")
-    env = MarlEnv(sample_instance, rew, global_obs=sample_global_obs, hooks=sample_hooks)
+    env = MarlEnv(sample_instance, rew, global_obs=sample_global_obs, hooks=sample_hooks, env_mode=env_mode)
     obs_dim = env.observations()[0].obs_vector.size
     node_dim = env.observations()[0].node_feats.shape[1]
     global_dim = env.global_state().size
@@ -558,6 +569,8 @@ def train_loop(args) -> None:
         entropy_coef=args.entropy_coef,
         value_coef=args.value_coef,
         clip_eps=args.clip_eps,
+        adv_clip=args.adv_clip,
+        value_clip=args.value_clip,
     )
 
     if args.pretrained:
@@ -569,11 +582,19 @@ def train_loop(args) -> None:
     best_cov = 0.0
     replay_cache: List[Transition] = []
 
+    train_start = time.time()
+    logs_dir = Path("results")
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    log_path = logs_dir / f"train_log_{env_mode}.csv"
+    if not log_path.exists():
+        log_path.write_text("episode,coverage,return,adv,phase,loss_pi,loss_v,episode_seconds,total_seconds\n")
+
     for ep in range(args.episodes):
+        ep_start = time.time()
         if ep > 0:
             # refresh instance each episode
             instance, global_obs, hooks = build_instance("train")
-            env = MarlEnv(instance, rew, global_obs=global_obs, hooks=hooks)
+            env = MarlEnv(instance, rew, global_obs=global_obs, hooks=hooks, env_mode=env_mode)
 
         obs = env.observations()
         done = False
@@ -638,12 +659,20 @@ def train_loop(args) -> None:
             advanced = False
 
         phase_label = curriculum.current.name if env_mode == "abstract" else env_mode
+        ep_elapsed = time.time() - ep_start
+        total_elapsed = time.time() - train_start
+        with log_path.open("a", encoding="utf-8") as lf:
+            lf.write(
+                f"{ep},{info.get('coverage', 0.0):.5f},{mean_ret:.5f},{mean_adv:.5f},{phase_label},"
+                f"{stats['actor_loss']:.6f},{stats['critic_loss']:.6f},{ep_elapsed:.3f},{total_elapsed:.3f}\n"
+            )
         print(
             f"[ep {ep:04d}] cov={info.get('coverage', 0.0):.3f} "
             f"R={mean_ret:.3f} "
             f"A={mean_adv:.3f} "
             f"phase={phase_label} "
-            f"loss_pi={stats['actor_loss']:.4f} loss_v={stats['critic_loss']:.4f} entr={stats['entropy']:.4f}"
+            f"loss_pi={stats['actor_loss']:.4f} loss_v={stats['critic_loss']:.4f} entr={stats['entropy']:.4f} "
+            f"ep_time={ep_elapsed:.1f}s total={total_elapsed:.1f}s"
         )
         if advanced:
             print(f"--> curriculum advanced to {curriculum.current.name}")
@@ -660,6 +689,68 @@ def train_loop(args) -> None:
     if args.save is not None:
         torch.save({"actor": agent.actor.state_dict(), "critic": agent.critic.state_dict()}, args.save)
         print(f"[save] checkpoints stored at {args.save}")
+    _plot_training_curves(log_path, env_mode)
+    print(f"[train] completed {args.episodes} episodes in {time.time()-train_start:.1f}s")
+
+
+def _plot_training_curves(log_path: Path, env_mode: str) -> None:
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        print("[train] matplotlib not available; skipping curve plots.")
+        return
+
+    if not log_path.exists():
+        return
+    episodes: List[int] = []
+    coverages: List[float] = []
+    returns: List[float] = []
+    actor_losses: List[float] = []
+    critic_losses: List[float] = []
+    with log_path.open("r", encoding="utf-8") as lf:
+        reader = csv.DictReader(lf)
+        for row in reader:
+            episodes.append(int(row["episode"]))
+            coverages.append(float(row["coverage"]))
+            returns.append(float(row["return"]))
+            actor_losses.append(float(row["loss_pi"]))
+            critic_losses.append(float(row["loss_v"]))
+    if not episodes:
+        return
+    plots_dir = Path("results") / "plots"
+    plots_dir.mkdir(parents=True, exist_ok=True)
+
+    plt.figure()
+    plt.plot(episodes, coverages, label="coverage")
+    plt.title(f"Coverage vs Episode ({env_mode})")
+    plt.xlabel("Episode")
+    plt.ylabel("Coverage")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(plots_dir / f"{env_mode}_coverage.png")
+    plt.close()
+
+    plt.figure()
+    plt.plot(episodes, returns, label="return", color="tab:orange")
+    plt.title(f"Return vs Episode ({env_mode})")
+    plt.xlabel("Episode")
+    plt.ylabel("Return")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(plots_dir / f"{env_mode}_return.png")
+    plt.close()
+
+    plt.figure()
+    plt.plot(episodes, actor_losses, label="actor loss")
+    plt.plot(episodes, critic_losses, label="critic loss")
+    plt.title(f"Losses vs Episode ({env_mode})")
+    plt.xlabel("Episode")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(plots_dir / f"{env_mode}_loss.png")
+    plt.close()
 
 
 def parse_args(argv=None):
@@ -681,6 +772,8 @@ def parse_args(argv=None):
     ap.add_argument("--entropy-coef", type=float, default=0.01, help="Entropy coefficient (4.3.3)")
     ap.add_argument("--value-coef", type=float, default=0.5, help="Value loss coefficient (4.3.3)")
     ap.add_argument("--clip-eps", type=float, default=0.2, help="PPO clip epsilon (4.3.3)")
+    ap.add_argument("--adv-clip", type=float, default=10.0, help="Absolute clipping for advantages")
+    ap.add_argument("--value-clip", type=float, default=0.3, help="Value function clip range (delta)")
     return ap.parse_args(argv)
 
 

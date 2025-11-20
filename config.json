@@ -35,7 +35,7 @@
   "uav_specs": {
     "battery_Wh": 115,
     "cruise_speed_ms": 15,
-    "n_uavs": { "train": [2, 6], "val": [2, 6] },
+    "n_uavs": { "train": [4, 4], "val": [4, 4] },
     "E_max": { "train": 1000, "val": 650 },
     "E_reserve": { "train": 150, "val": 100 },
     "energy_model": {
@@ -88,5 +88,10 @@
       "density_range": [0.05, 0.10],
       "ensure_connectivity": true
     }
+  },
+
+  "lurigancho_fixed_overrides": {
+    "horizon_ticks": 5000,
+    "n_uavs": 4
   }
 }

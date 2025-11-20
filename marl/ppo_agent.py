@@ -53,6 +53,7 @@ class RolloutBuffer:
         self.data: List[Transition] = []
         self.advantages: Optional[torch.Tensor] = None
         self.returns: Optional[torch.Tensor] = None
+        self.values: Optional[torch.Tensor] = None
 
     def compute_advantages(self, gamma: float, lam: float) -> None:
         rewards = [t.reward for t in self.data]
@@ -70,6 +71,7 @@ class RolloutBuffer:
         values_t = torch.tensor(values, dtype=torch.float32)
         self.advantages = torch.tensor(adv_list, dtype=torch.float32)
         self.returns = self.advantages + values_t
+        self.values = values_t
 
     def as_tensors(self) -> Tuple[torch.Tensor, ...]:
         obs_arr = np.stack([t.obs_vector for t in self.data], axis=0).astype(np.float32)
@@ -102,6 +104,8 @@ class PPOAgent:
         entropy_coef: float = 0.01,
         value_coef: float = 0.5,
         max_grad_norm: float = 1.0,
+        adv_clip: float = 10.0,
+        value_clip: float = 0.3,
         device: Optional[torch.device] = None,
     ):
         self.device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -115,6 +119,8 @@ class PPOAgent:
         self.entropy_coef = entropy_coef
         self.value_coef = value_coef
         self.max_grad_norm = max_grad_norm
+        self.adv_clip = adv_clip
+        self.value_clip = value_clip
         self.buffer = RolloutBuffer()
 
     def _mask_logits(self, logits: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
@@ -155,6 +161,7 @@ class PPOAgent:
         obs_vec, node_feats, adjs, masks, actions, old_logprobs, states = self.buffer.as_tensors()
         adv = self.buffer.advantages.clone()
         ret = self.buffer.returns.clone()
+        old_values = self.buffer.values.clone() if self.buffer.values is not None else torch.zeros_like(ret)
 
         obs_vec = obs_vec.to(self.device)
         node_feats = node_feats.to(self.device)
@@ -165,7 +172,10 @@ class PPOAgent:
         adv = adv.to(self.device)
         ret = ret.to(self.device)
         states = states.to(self.device)
+        old_values = old_values.to(self.device)
 
+        if self.adv_clip and self.adv_clip > 0:
+            adv = adv.clamp(-self.adv_clip, self.adv_clip)
         adv = (adv - adv.mean()) / (adv.std() + 1e-8)
         n = obs_vec.size(0)
         idxs = torch.arange(n)
@@ -187,7 +197,17 @@ class PPOAgent:
                 actor_loss = -torch.min(surr1, surr2).mean() - self.entropy_coef * entropy
 
                 value_pred = self.critic(states[batch])
-                critic_loss = F.mse_loss(value_pred, ret[batch])
+                target = ret[batch].unsqueeze(-1)
+                if self.value_clip and self.value_clip > 0:
+                    v_old = old_values[batch].unsqueeze(-1)
+                    v_pred_clipped = v_old + torch.clamp(value_pred - v_old, -self.value_clip, self.value_clip)
+                    value_loss = torch.max(
+                        (value_pred - target).pow(2),
+                        (v_pred_clipped - target).pow(2),
+                    )
+                    critic_loss = value_loss.mean()
+                else:
+                    critic_loss = F.mse_loss(value_pred, target)
 
                 loss = actor_loss + self.value_coef * critic_loss
 

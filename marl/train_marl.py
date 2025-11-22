@@ -182,6 +182,7 @@ class MarlEnv:
         global_obs: Optional[object] = None,
         hooks: Optional[Dict[str, Callable[[int, int], None]]] = None,
         env_mode: str = "abstract",
+        ignore_horizon: bool = False,
     ):
 
         self.grid = instance["grid"]
@@ -216,6 +217,7 @@ class MarlEnv:
 
         self.rewards = reward_weights
         self.env_mode = env_mode
+        self.ignore_horizon = ignore_horizon
 
         self.global_obs = global_obs
 
@@ -469,9 +471,14 @@ class MarlEnv:
         )
 
         self.tick += 1
-        done = (self.tick >= self.horizon_ticks) or all(p.served for p in self.pois)
-        if self.env_mode == "lurigancho_fixed" and coverage_ratio >= self.rewards.high_coverage_threshold:
-            done = True
+        # Episode termination: by default, horizon OR all POIs served.
+        # When ignore_horizon is True (used in deterministic evaluation),
+        # only full completion of POIs can terminate the episode.
+        done = all(p.served for p in self.pois)
+        if not self.ignore_horizon:
+            done = done or (self.tick >= self.horizon_ticks)
+            if self.env_mode == "lurigancho_fixed" and coverage_ratio >= self.rewards.high_coverage_threshold:
+                done = True
         if done:
             if coverage_ratio >= 1.0 - 1e-6:
                 reward += self.rewards.full_coverage_bonus

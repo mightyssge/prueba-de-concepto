@@ -545,6 +545,7 @@ def evaluate_lurigancho_policy(
     policy_factory: Callable[[], PolicyInterface],
     *,
     policy_name: str,
+    env_mode: str,
     log_trajectories: bool = False,
 ) -> Tuple[List[Dict[str, float]], Dict[str, float], List[Dict[str, Any]]]:
     rew = RewardWeights()
@@ -553,7 +554,8 @@ def evaluate_lurigancho_policy(
     extra_logs: List[Dict[str, Any]] = []
     for seed in seeds:
         instance, global_obs, hooks = builder_fn(seed)
-        env = MarlEnv(instance, rew, global_obs=global_obs, hooks=hooks)
+        ignore_horizon = env_mode == "lurigancho_fixed"
+        env = MarlEnv(instance, rew, global_obs=global_obs, hooks=hooks, env_mode=env_mode, ignore_horizon=ignore_horizon)
         policy = policy_factory()
         metrics, extras = rollout_policy(env, policy, log_trajectories=log_trajectories)
         metrics["phase_id"] = 3
@@ -908,7 +910,10 @@ def evaluate_lurigancho(args, cfg, env_mode: str) -> None:
     sample_seed = seeds[0]
     sample_instance, sample_global_obs, sample_hooks = _build_episode(sample_seed)
     rew = RewardWeights()
-    env = MarlEnv(sample_instance, rew, global_obs=sample_global_obs, hooks=sample_hooks)
+    # For deterministic Lurigancho validation we want episodes to run
+    # until all POIs are served, without cutting at horizon_ticks.
+    ignore_horizon = env_mode == "lurigancho_fixed"
+    env = MarlEnv(sample_instance, rew, global_obs=sample_global_obs, hooks=sample_hooks, env_mode=env_mode, ignore_horizon=ignore_horizon)
     obs_dim = env.observations()[0].obs_vector.size
     node_dim = env.observations()[0].node_feats.shape[1]
     global_dim = env.global_state().size
@@ -933,6 +938,7 @@ def evaluate_lurigancho(args, cfg, env_mode: str) -> None:
         seeds,
         lambda: MarlActorPolicy(agent, deterministic=not args.stochastic_eval),
         policy_name="marl",
+        env_mode=env_mode,
         log_trajectories=args.log_trajectories,
     )
     print("[eval] MARL aggregate:", marl_stats)
@@ -959,6 +965,7 @@ def evaluate_lurigancho(args, cfg, env_mode: str) -> None:
             seeds,
             factory,
             policy_name=base_name,
+            env_mode=env_mode,
             log_trajectories=args.log_trajectories,
         )
         print(f"[eval] {base_name} aggregate:", baseline_stats)

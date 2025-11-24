@@ -126,7 +126,15 @@ def main():
     if args.files:
         files = [Path(p) for p in args.files]
     else:
-        files = list(Path("results/routes").rglob("results.txt"))
+        preferred = [
+            Path("results/routes/poli with obstacles/results.txt"),
+            Path("results/routes/poli without obstacles/results.txt"),
+            Path("results/routes/greedy2/results.txt"),
+            Path("results/routes/genetica2/results.txt"),
+        ]
+        files = [p for p in preferred if p.exists()]
+        if not files:
+            files = list(Path("results/routes").rglob("results.txt"))
     df = load_results(files)
     if df.empty:
         print("[error] no se encontraron resultados válidos.")

@@ -1,0 +1,1 @@
+[final]  policy=greedy  serv=1/50  cov=2.0%  rtb=4  serv_uav={0: 1, 1: 0, 2: 0, 3: 0}  cov_uav={0: 0.02, 1: 0.0, 2: 0.0, 3: 0.0}

@@ -1,0 +1,2 @@
+[paso 3000] tick=03000 serv=18/50 cov=36.0% energia_prom=23.5 rtb=20 serv_uav={0: 5, 1: 4, 2: 5, 3: 4} cov_uav={0: 0.1, 1: 0.08, 2: 0.1, 3: 0.08}
+[final]  policy=marl  serv=18/50  cov=36.0%  rtb=20  serv_uav={0: 5, 1: 4, 2: 5, 3: 4}  cov_uav={0: 0.1, 1: 0.08, 2: 0.1, 3: 0.08}

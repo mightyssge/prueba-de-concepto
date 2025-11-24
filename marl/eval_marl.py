@@ -161,6 +161,72 @@ class MarlActorPolicy(PolicyInterface):
         return actions
 
 
+class GuidedMarlPolicy(PolicyInterface):
+    """Marl policy with simple RTB guidance (energía + estancamiento)."""
+
+    def __init__(self, agent: PPOAgent, *, deterministic: bool = True, energy_margin: float = 5.0, stagnation_steps: int = 200, disabled: bool = False):
+        self.agent = agent
+        self.deterministic = deterministic
+        self.energy_margin = max(0.0, energy_margin)
+        self.stagnation_steps = stagnation_steps
+        self.disabled = disabled
+        self.reset()
+
+    def reset(self) -> None:
+        self.stagnation_counter = 0
+        self.force_rtb = False
+        self.served_count = None
+        self.violated_count = None
+
+    def _energy_needed(self, env: MarlEnv, uav: UAV) -> float:
+        base_cost = float(env.energy_map[uav.pos[0], uav.pos[1]]) if hasattr(env, "energy_map") else 0.0
+        return base_cost + env.E_reserve + self.energy_margin
+
+    def select_actions(self, env: MarlEnv, observations: Dict[int, Any]) -> Dict[int, int]:
+        uid_to_uav = {u.uid: u for u in env.uavs}
+        if self.served_count is None:
+            self.served_count = sum(1 for p in env.pois if p.served)
+        if self.violated_count is None:
+            self.violated_count = sum(1 for p in env.pois if getattr(p, "violated", False))
+        actions: Dict[int, int] = {}
+        for uid, ob in observations.items():
+            forced_action = None
+            if not self.disabled:
+                mask = getattr(ob, "action_mask", None)
+                can_rtb = bool(mask[10]) if mask is not None and len(mask) > 10 else False
+                if self.force_rtb and can_rtb:
+                    forced_action = 10
+                else:
+                    u = uid_to_uav[uid]
+                    energy_needed = self._energy_needed(env, u)
+                    if np.isfinite(energy_needed) and can_rtb and u.E <= energy_needed:
+                        forced_action = 10
+            act, _, _, _ = self.agent.act(
+                ob.obs_vector,
+                ob.node_feats,
+                ob.adj_matrix,
+                ob.action_mask,
+                deterministic=self.deterministic,
+                forced_action=forced_action,
+            )
+            actions[uid] = act
+        return actions
+
+    def post_step(self, env: MarlEnv) -> None:
+        served_after = sum(1 for p in env.pois if p.served)
+        violated_after = sum(1 for p in env.pois if getattr(p, "violated", False))
+        if served_after > (self.served_count or 0) or violated_after > (self.violated_count or 0):
+            self.stagnation_counter = 0
+            self.force_rtb = False
+        else:
+            self.stagnation_counter += 1
+            if self.stagnation_steps > 0 and self.stagnation_counter >= self.stagnation_steps:
+                self.force_rtb = True
+                self.stagnation_counter = 0
+        self.served_count = served_after
+        self.violated_count = violated_after
+
+
 class GreedyBaselinePolicy(PolicyInterface):
     """Deterministic nearest-POI baseline for comparison (4.4.1)."""
 
@@ -454,6 +520,7 @@ def rollout_policy(
     policy: PolicyInterface,
     *,
     log_trajectories: bool = False,
+    early_stop_patience: int = 0,
 ) -> Tuple[Dict[str, float], Dict[str, Any]]:
     """Runs a single episode and returns scalar metrics + per-UAV stats (4.4.x)."""
     observations = env.observations()
@@ -461,13 +528,28 @@ def rollout_policy(
     done = False
     energy_consumed = 0.0
     trajectories: Dict[int, List[Tuple[int, int]]] = {u.uid: [u.pos] for u in env.uavs} if log_trajectories else {}
+    best_served = 0
+    last_improve_tick = 0
+    early_stop_used = False
     while not done:
         actions = policy.select_actions(env, observations)
         observations, _, done, info = env.step(actions)
         energy_consumed += info.get("energy_spent", 0.0)
+        if hasattr(policy, "post_step"):
+            try:
+                policy.post_step(env)
+            except Exception:
+                pass
         if log_trajectories:
             for u in env.uavs:
                 trajectories[u.uid].append(u.pos)
+        served_now = sum(1 for p in env.pois if p.served)
+        if served_now > best_served:
+            best_served = served_now
+            last_improve_tick = env.tick
+        if early_stop_patience > 0 and env.tick - last_improve_tick >= early_stop_patience:
+            done = True
+            early_stop_used = True
     served_after = sum(1 for p in env.pois if p.served)
     total_pois = len(env.pois)
     coverage = served_after / max(total_pois, 1)
@@ -498,6 +580,8 @@ def rollout_policy(
         "energy_per_uav": dict(env.energy_spent),
         "action_hist": {str(k): int(v) for k, v in env.action_hist.items()},
         "rtb_events": int(env.rtb_count),
+        "early_stop": early_stop_used,
+        "early_stop_patience": early_stop_patience,
     }
     return metrics, extras
 
@@ -547,6 +631,7 @@ def evaluate_lurigancho_policy(
     policy_name: str,
     env_mode: str,
     log_trajectories: bool = False,
+    early_stop_patience: int = 0,
 ) -> Tuple[List[Dict[str, float]], Dict[str, float], List[Dict[str, Any]]]:
     rew = RewardWeights()
     per_episode: List[Dict[str, float]] = []
@@ -554,10 +639,14 @@ def evaluate_lurigancho_policy(
     extra_logs: List[Dict[str, Any]] = []
     for seed in seeds:
         instance, global_obs, hooks = builder_fn(seed)
-        ignore_horizon = env_mode == "lurigancho_fixed"
-        env = MarlEnv(instance, rew, global_obs=global_obs, hooks=hooks, env_mode=env_mode, ignore_horizon=ignore_horizon)
+        env = MarlEnv(instance, rew, global_obs=global_obs, hooks=hooks, env_mode=env_mode, ignore_horizon=False)
         policy = policy_factory()
-        metrics, extras = rollout_policy(env, policy, log_trajectories=log_trajectories)
+        metrics, extras = rollout_policy(
+            env,
+            policy,
+            log_trajectories=log_trajectories,
+            early_stop_patience=early_stop_patience,
+        )
         metrics["phase_id"] = 3
         metrics["seed"] = seed
         per_episode.append(metrics)
@@ -900,20 +989,23 @@ def evaluate_lurigancho(args, cfg, env_mode: str) -> None:
         pois_path = Path(args.pois_file or "lurigancho_pois_val.json")
         fixed_data = load_lurigancho_fixed_data(pois_path)
     seeds = [args.seed + i for i in range(max(1, args.val_count))]
+    delta_t_s = float(cfg["simulation_environment"].get("delta_t_s", 1.0))
+    max_eval_ticks = int(round((4 * 3600) / max(delta_t_s, 1e-6)))  # ~4 horas simuladas
 
     def _build_episode(seed: int):
         local_rng = np.random.default_rng(seed)
         if env_mode == "lurigancho_random":
-            return build_lurigancho_random_episode(map_data, cfg, local_rng, split="val")
-        return build_lurigancho_fixed_episode(map_data, fixed_data, cfg, local_rng, split="val")
+            inst, gobs, hk = build_lurigancho_random_episode(map_data, cfg, local_rng, split="val")
+        else:
+            inst, gobs, hk = build_lurigancho_fixed_episode(map_data, fixed_data, cfg, local_rng, split="val")
+        if "horizon_ticks" in inst:
+            inst["horizon_ticks"] = min(int(inst["horizon_ticks"]), max_eval_ticks)
+        return inst, gobs, hk
 
     sample_seed = seeds[0]
     sample_instance, sample_global_obs, sample_hooks = _build_episode(sample_seed)
     rew = RewardWeights()
-    # For deterministic Lurigancho validation we want episodes to run
-    # until all POIs are served, without cutting at horizon_ticks.
-    ignore_horizon = env_mode == "lurigancho_fixed"
-    env = MarlEnv(sample_instance, rew, global_obs=sample_global_obs, hooks=sample_hooks, env_mode=env_mode, ignore_horizon=ignore_horizon)
+    env = MarlEnv(sample_instance, rew, global_obs=sample_global_obs, hooks=sample_hooks, env_mode=env_mode, ignore_horizon=False)
     obs_dim = env.observations()[0].obs_vector.size
     node_dim = env.observations()[0].node_feats.shape[1]
     global_dim = env.global_state().size
@@ -936,10 +1028,17 @@ def evaluate_lurigancho(args, cfg, env_mode: str) -> None:
     marl_eps, marl_stats, marl_logs = evaluate_lurigancho_policy(
         builder_fn,
         seeds,
-        lambda: MarlActorPolicy(agent, deterministic=not args.stochastic_eval),
+        lambda: GuidedMarlPolicy(
+            agent,
+            deterministic=not args.stochastic_eval,
+            energy_margin=args.guidance_energy_margin,
+            stagnation_steps=args.guidance_stagnation_steps,
+            disabled=args.disable_guidance,
+        ),
         policy_name="marl",
         env_mode=env_mode,
         log_trajectories=args.log_trajectories,
+        early_stop_patience=100,
     )
     print("[eval] MARL aggregate:", marl_stats)
     rows.append({"policy": "marl", **marl_stats})
@@ -967,6 +1066,7 @@ def evaluate_lurigancho(args, cfg, env_mode: str) -> None:
             policy_name=base_name,
             env_mode=env_mode,
             log_trajectories=args.log_trajectories,
+            early_stop_patience=100,
         )
         print(f"[eval] {base_name} aggregate:", baseline_stats)
         rows.append({"policy": base_name, **baseline_stats})
@@ -1033,6 +1133,9 @@ def parse_args(argv=None):
     ap.add_argument("--episodes-json", type=str, default=None, help="Path to store detailed per-episode metrics/extras in JSON")
     ap.add_argument("--plots-dir", type=str, default=None, help="Directory to write evaluation plots")
     ap.add_argument("--stochastic-eval", action="store_true", help="Use stochastic action sampling for MARL evaluation instead of deterministic argmax")
+    ap.add_argument("--guidance-energy-margin", type=float, default=5.0, help="Margen de energía antes de forzar RTB (0 desactiva)")
+    ap.add_argument("--guidance-stagnation-steps", type=int, default=200, help="Pasos sin mejora de coverage antes de RTB forzado (<=0 desactiva)")
+    ap.add_argument("--disable-guidance", action="store_true", help="Desactiva la lógica guiada RTB/estancamiento")
     # single-mode args
     ap.add_argument("--val-phase", type=int, default=3, choices=[1, 2, 3], help="Phase for single-mode validation")
     ap.add_argument("--val-count", type=int, default=5, help="Number of validation scenarios")

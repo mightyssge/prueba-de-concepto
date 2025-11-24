@@ -1,0 +1,1 @@
+[paso 3000] tick=03000 serv=15/50 cov=30.0% energia_prom=613.1 rtb=20 serv_uav={0: 4, 1: 5, 2: 3, 3: 3} cov_uav={0: 0.08, 1: 0.1, 2: 0.06, 3: 0.06}

@@ -136,6 +136,7 @@ class PPOAgent:
         *,
         hidden: Optional[torch.Tensor] = None,
         deterministic: bool = False,
+        forced_action: Optional[int] = None,
     ) -> Tuple[int, float, float, Optional[torch.Tensor]]:
         obs_t = torch.tensor(obs_vec, dtype=torch.float32, device=self.device).unsqueeze(0)
         node_t = torch.tensor(node_feats, dtype=torch.float32, device=self.device).unsqueeze(0)
@@ -144,7 +145,9 @@ class PPOAgent:
         logits, next_hidden, _ = self.actor(obs_t, node_t, adj_t, hidden)
         masked_logits = self._mask_logits(logits, mask_t)
         dist = Categorical(logits=masked_logits)
-        if deterministic:
+        if forced_action is not None:
+            action = int(forced_action)
+        elif deterministic:
             action = int(torch.argmax(masked_logits, dim=-1).item())
         else:
             action = int(dist.sample().item())

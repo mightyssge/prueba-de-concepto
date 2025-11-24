@@ -1,0 +1,8 @@
+policy,served,total,coverage,violations,rtb,serv_uav,cov_uav,label,path,coverage_pct
+genetic,44,50,0.88,0,0,"{0: 12, 1: 11, 2: 11, 3: 10}","{0: 0.24, 1: 0.22, 2: 0.22, 3: 0.2}",genetica,results\routes\1st run\genetica\results.txt,88.0
+greedy,1,50,0.02,0,4,"{0: 1, 1: 0, 2: 0, 3: 0}","{0: 0.02, 1: 0.0, 2: 0.0, 3: 0.0}",greedy,results\routes\1st run\greedy\results.txt,2.0
+marl,18,50,0.36,0,20,"{0: 5, 1: 4, 2: 5, 3: 4}","{0: 0.1, 1: 0.08, 2: 0.1, 3: 0.08}",politic without obstacles,results\routes\1st run\politic without obstacles\results.txt,36.0
+genetic,44,50,0.88,4,0,"{0: 12, 1: 11, 2: 11, 3: 10}","{0: 0.24, 1: 0.22, 2: 0.22, 3: 0.2}",genetica2,results\routes\genetica2\results.txt,88.0
+greedy,1,50,0.02,0,4,"{0: 1, 1: 0, 2: 0, 3: 0}","{0: 0.02, 1: 0.0, 2: 0.0, 3: 0.0}",greedy2,results\routes\greedy2\results.txt,2.0
+marl,15,50,0.3,4,20,"{0: 4, 1: 5, 2: 3, 3: 3}","{0: 0.08, 1: 0.1, 2: 0.06, 3: 0.06}",poli with obstacles,results\routes\poli with obstacles\results.txt,30.0
+marl,19,50,0.38,5,20,"{0: 6, 1: 4, 2: 5, 3: 4}","{0: 0.12, 1: 0.08, 2: 0.1, 3: 0.08}",poli without obstacles,results\routes\poli without obstacles\results.txt,38.0

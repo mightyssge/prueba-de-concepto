@@ -1,0 +1,9 @@
+metric,abstract,lurigancho_fixed,lurigancho_random
+adv,-0.1464,-0.9177,0.1401
+coverage,0.2557,0.6037,0.5912
+episode,93.9245,53.0296,143.7885
+episode_seconds,27.7795,245.9072,40.8014
+loss_pi,-0.0276,-0.0165,-0.0162
+loss_v,6.3394,44.0854,38.665
+return,-2.631,-0.256,6.9054
+total_seconds,2227.815,13837.6021,5809.2613

@@ -1,0 +1,1 @@
+[final]  policy=genetic  serv=44/50  cov=88.0%  rtb=0  serv_uav={0: 12, 1: 11, 2: 11, 3: 10}  cov_uav={0: 0.24, 1: 0.22, 2: 0.22, 3: 0.2}

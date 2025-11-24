@@ -605,6 +605,11 @@ def train_loop(args) -> None:
 
         obs = env.observations()
         done = False
+        uid_to_uav = {u.uid: u for u in env.uavs}
+        served_count = sum(1 for p in env.pois if p.served)
+        violated_count = sum(1 for p in env.pois if getattr(p, "violated", False))
+        stagnation_counter = 0
+        force_rtb = False
 
         while not done:
             actions: Dict[int, int] = {}
@@ -612,8 +617,22 @@ def train_loop(args) -> None:
             value = float(agent.critic(torch.tensor(global_state, dtype=torch.float32, device=agent.device).unsqueeze(0)).item())
 
             for uid, ob in obs.items():
+                forced_action = None
+                if not args.disable_guidance:
+                    mask = getattr(ob, "action_mask", None)
+                    can_rtb = bool(mask[10]) if mask is not None and len(mask) > 10 else False
+                    if force_rtb and can_rtb:
+                        forced_action = 10  # RTB
+                    else:
+                        u = uid_to_uav[uid]
+                        energy_needed = float(env.energy_map[u.pos[0], u.pos[1]]) if hasattr(env, "energy_map") else 0.0
+                        if not np.isfinite(energy_needed):
+                            energy_needed = 0.0
+                        energy_needed += env.E_reserve + max(args.guidance_energy_margin, 0.0)
+                        if can_rtb and u.E <= energy_needed:
+                            forced_action = 10
                 action, logprob, _, _ = agent.act(
-                    ob.obs_vector, ob.node_feats, ob.adj_matrix, ob.action_mask, deterministic=False
+                    ob.obs_vector, ob.node_feats, ob.adj_matrix, ob.action_mask, deterministic=False, forced_action=forced_action
                 )
                 actions[uid] = action
                 tr = Transition(
@@ -632,6 +651,8 @@ def train_loop(args) -> None:
                 agent.store_transition(tr)
 
             next_obs, reward, done, info = env.step(actions)
+            served_after = sum(1 for p in env.pois if p.served)
+            violated_after = sum(1 for p in env.pois if getattr(p, "violated", False))
             next_value = 0.0
             if not done:
                 next_state_vec = env.global_state()
@@ -647,6 +668,17 @@ def train_loop(args) -> None:
                 agent.buffer.data[idx].next_value = next_value
 
             obs = next_obs
+            if not args.disable_guidance and not done:
+                if served_after > served_count or violated_after > violated_count:
+                    stagnation_counter = 0
+                    force_rtb = False
+                else:
+                    stagnation_counter += 1
+                    if args.guidance_stagnation_steps > 0 and stagnation_counter >= args.guidance_stagnation_steps:
+                        force_rtb = True
+                        stagnation_counter = 0
+                served_count = served_after
+                violated_count = violated_after
 
         # Augment buffer with cached experiences (simple replay)
         if replay_cache:
@@ -781,6 +813,9 @@ def parse_args(argv=None):
     ap.add_argument("--clip-eps", type=float, default=0.2, help="PPO clip epsilon (4.3.3)")
     ap.add_argument("--adv-clip", type=float, default=10.0, help="Absolute clipping for advantages")
     ap.add_argument("--value-clip", type=float, default=0.3, help="Value function clip range (delta)")
+    ap.add_argument("--guidance-energy-margin", type=float, default=5.0, help="Extra energy buffer before forzar RTB (0 desactiva)")
+    ap.add_argument("--guidance-stagnation-steps", type=int, default=200, help="Pasos sin mejora de cobertura antes de RTB forzado (<=0 desactiva)")
+    ap.add_argument("--disable-guidance", action="store_true", help="Desactiva la lógica guiada de RTB/estancamiento")
     return ap.parse_args(argv)
 
 
